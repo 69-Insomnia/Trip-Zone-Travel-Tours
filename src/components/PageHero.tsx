@@ -34,6 +34,9 @@ export function PageHero({
         alt={imageAlt}
         className="absolute inset-0 -z-20 size-full object-cover"
         style={{ objectPosition: imagePosition }}
+        width="1920"
+        height="1080"
+        fetchPriority="high"
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(3,24,35,.94)_0%,rgba(3,24,35,.76)_43%,rgba(3,24,35,.3)_72%,rgba(3,24,35,.15)_100%)]" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-ink/65 to-transparent" />

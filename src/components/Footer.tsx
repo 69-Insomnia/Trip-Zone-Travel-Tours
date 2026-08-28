@@ -1,6 +1,21 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, MessageCircle, Phone } from "lucide-react";
-import { site, telLink, whatsappLink } from "@/data/site";
+import {
+  ExternalLink,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Twitter,
+  Youtube,
+  type LucideIcon,
+} from "lucide-react";
+import { telLink } from "@/data/site";
+import { useSite, useTours, useWhatsappLink } from "@/lib/content";
+import { CONTACT_EMAIL } from "@/lib/seo";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const quickLinks = [
   { label: "Home", to: "/" },
@@ -13,28 +28,28 @@ const quickLinks = [
   { label: "Contact", to: "/contact" },
 ];
 
-const popularTours = [
-  { label: "Manang", slug: "manang" },
-  { label: "Muktinath", slug: "muktinath" },
-  { label: "Kalinchowk", slug: "sailung-kalinchowk" },
-  { label: "Pathivara", slug: "pathivara" },
-  { label: "Halesi", slug: "halesi-mahadev" },
-];
+function socialIcon(label: string, url: string): LucideIcon {
+  const value = `${label} ${url}`.toLowerCase();
+  if (value.includes("facebook")) return Facebook;
+  if (value.includes("instagram")) return Instagram;
+  if (value.includes("youtube") || value.includes("youtu.be")) return Youtube;
+  if (value.includes("linkedin")) return Linkedin;
+  if (value.includes("twitter") || value.includes("x.com")) return Twitter;
+  return ExternalLink;
+}
 
 export function Footer() {
+  const site = useSite();
+  const whatsapp = useWhatsappLink();
+  const popularTours = useTours().slice(0, 5);
+
   return (
     <footer className="bg-ink text-primary-foreground">
       <div className="container-page py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:pr-6">
             <div className="flex min-w-0 items-center gap-2.5">
-              <img
-                src="/logo.png"
-                alt="Trip Zone Travel & Tours"
-                className="size-10 shrink-0 rounded-xl bg-white p-1 object-contain"
-                width="40"
-                height="40"
-              />
+              <BrandLogo size="sm" />
               <span className="font-display text-lg font-semibold">Trip Zone</span>
             </div>
             <p className="mt-5 text-sm leading-relaxed text-primary-foreground/70">
@@ -48,7 +63,7 @@ export function Footer() {
             <h3 className="text-xs font-bold tracking-[0.16em] uppercase text-accent">
               Quick Links
             </h3>
-            <ul className="mt-5 space-y-3 text-sm">
+            <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm lg:grid-cols-1">
               {quickLinks.map((l) => (
                 <li key={l.to}>
                   <Link
@@ -74,7 +89,7 @@ export function Footer() {
                     params={{ slug: t.slug }}
                     className="text-primary-foreground/75 transition-colors hover:text-accent"
                   >
-                    {t.label}
+                    {t.name}
                   </Link>
                 </li>
               ))}
@@ -99,7 +114,7 @@ export function Footer() {
               <li className="flex gap-3">
                 <MessageCircle className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
                 <a
-                  href={whatsappLink(site.phones[0])}
+                  href={whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors hover:text-accent"
@@ -107,27 +122,37 @@ export function Footer() {
                   Chat on WhatsApp
                 </a>
               </li>
+              <li className="flex min-w-0 gap-3">
+                <Mail className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="min-w-0 break-all transition-colors hover:text-accent"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+              </li>
             </ul>
             {site.socials.length > 0 ? (
-              <div className="mt-6 flex gap-3">
-                {site.socials.map((s) => (
-                  <a
-                    key={s.url}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary-foreground/75 hover:text-accent"
-                  >
-                    {s.label}
-                  </a>
-                ))}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {site.socials.map((social) => {
+                  const SocialIcon = socialIcon(social.label, social.url);
+                  return (
+                    <a
+                      key={social.url}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Open ${social.label}`}
+                      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-primary-foreground/15 px-3 py-2 text-xs font-semibold text-primary-foreground/75 transition-colors hover:border-accent/50 hover:text-accent"
+                    >
+                      <SocialIcon className="size-4" aria-hidden="true" />
+                      {social.label}
+                      <ExternalLink className="size-3 opacity-55" aria-hidden="true" />
+                    </a>
+                  );
+                })}
               </div>
-            ) : (
-              <p className="mt-6 text-xs text-primary-foreground/45">
-                Facebook, Instagram and TikTok links will appear here once profile URLs are
-                provided.
-              </p>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -135,7 +160,7 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {site.name}. All rights reserved.
           </p>
-          <p>Koteshwor, Kathmandu · Nepal</p>
+          <p>{site.address}</p>
         </div>
       </div>
     </footer>

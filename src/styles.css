@@ -107,6 +107,7 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -117,6 +118,7 @@
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   button,
@@ -138,7 +140,7 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     text-wrap: balance;
   }
 
@@ -186,7 +188,7 @@
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 7vw, 5rem);
   line-height: 1.02;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   font-weight: 800;
 }
 
@@ -194,7 +196,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.875rem, 3.6vw, 3rem);
   line-height: 1.08;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-weight: 800;
 }
 

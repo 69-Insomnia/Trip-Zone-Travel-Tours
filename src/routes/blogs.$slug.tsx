@@ -3,28 +3,47 @@ import { ArrowLeft, ArrowRight, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BookingCTA } from "@/components/BookingCTA";
 import { PageHero } from "@/components/PageHero";
-import { blogs, getBlog } from "@/data/blogs";
+import { fetchBlog, fetchBlogs } from "@/data/queries";
+import { articleJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blogs/$slug")({
-  loader: ({ params }) => {
-    const blog = getBlog(params.slug);
+  loader: async ({ params }) => {
+    const [blog, all] = await Promise.all([fetchBlog(params.slug), fetchBlogs()]);
     if (!blog) throw notFound();
-    return blog;
+    return { blog, related: all.filter((item) => item.slug !== blog.slug).slice(0, 2) };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.title} | Trip Zone` },
-          { name: "description", content: loaderData.excerpt },
-        ]
-      : [],
-  }),
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return seoHead({
+        title: "Travel guide not found | Trip Zone Travel & Tours",
+        description: "Browse practical Nepal travel guides from Trip Zone Travel & Tours.",
+        path: "/blogs",
+        robots: "noindex, follow",
+      });
+    }
+
+    const { blog } = loaderData;
+    return {
+      ...seoHead({
+        title: `${blog.title} | Trip Zone Travel & Tours`,
+        description: blog.excerpt,
+        path: `/blogs/${blog.slug}`,
+        image: blog.image,
+        type: "article",
+      }),
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(articleJsonLd(blog)),
+        },
+      ],
+    };
+  },
   component: BlogDetailPage,
 });
 
 function BlogDetailPage() {
-  const blog = Route.useLoaderData();
-  const related = blogs.filter((item) => item.slug !== blog.slug).slice(0, 2);
+  const { blog, related } = Route.useLoaderData();
 
   return (
     <>
@@ -56,7 +75,9 @@ function BlogDetailPage() {
           <img
             src={blog.image}
             alt={blog.title}
-            className="aspect-[2/1] w-full rounded-[1.5rem] object-cover shadow-panel"
+            className="aspect-[2/1] w-full rounded-xl object-cover shadow-panel"
+            width="1600"
+            height="800"
           />
         </div>
         <div className="container-page grid gap-12 py-14 md:py-20 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -91,7 +112,7 @@ function BlogDetailPage() {
               ))}
             </div>
           </div>
-          <aside className="h-fit rounded-2xl border border-border bg-surface p-6 lg:sticky lg:top-28">
+          <aside className="h-fit rounded-xl border border-border bg-surface p-6 lg:sticky lg:top-28">
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-primary">
               Plan this route
             </p>
@@ -115,7 +136,7 @@ function BlogDetailPage() {
                 key={item.slug}
                 to="/blogs/$slug"
                 params={{ slug: item.slug }}
-                className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
+                className="rounded-xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
               >
                 <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">
                   {item.category}

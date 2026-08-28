@@ -5,31 +5,31 @@ import { BookingCTA } from "@/components/BookingCTA";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
-import { photo } from "@/data/photos";
-
-const hero = photo("boudhanath");
+import { usePhoto, useSite } from "@/lib/content";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About Trip Zone Travel & Tours" },
-      {
-        name: "description",
-        content:
-          "Learn how Trip Zone Travel & Tours plans comfortable, local Nepal journeys for groups, couples and families.",
-      },
-    ],
-  }),
+  head: () =>
+    seoHead({
+      title: "About Trip Zone Travel & Tours | Kathmandu, Nepal",
+      description:
+        "Learn how Trip Zone Travel & Tours plans comfortable, locally guided Nepal journeys for groups, couples and families.",
+      path: "/about",
+      image: "/photos/boudhanath.jpg",
+    }),
   component: AboutPage,
 });
 
 function AboutPage() {
+  const hero = usePhoto("boudhanath");
+  const site = useSite();
+
   return (
     <>
       <PageHero
         eyebrow="About Trip Zone"
         title="Nepal, planned with local care."
-        subtitle="Trip Zone Travel & Tours Pvt. Ltd. helps travellers experience Nepal through scenic journeys, pilgrimage routes, mountain landscapes and cultural towns."
+        subtitle={`${site.name} helps travellers experience Nepal through scenic journeys, pilgrimage routes, mountain landscapes and cultural towns.`}
         image={hero.src}
         imageAlt={hero.alt}
       />
@@ -49,19 +49,19 @@ function AboutPage() {
           </Reveal>
           <Reveal delay={120}>
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="hairline rounded-2xl bg-card p-5 shadow-soft">
+              <div className="hairline rounded-xl bg-card p-5 shadow-soft">
                 <Mountain className="size-6 text-primary" />
                 <h3 className="mt-3 font-display text-lg text-ink">Nepal expertise</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Routes shaped by local knowledge.
                 </p>
               </div>
-              <div className="hairline rounded-2xl bg-card p-5 shadow-soft">
+              <div className="hairline rounded-xl bg-card p-5 shadow-soft">
                 <MapPinned className="size-6 text-forest" />
                 <h3 className="mt-3 font-display text-lg text-ink">Comfort in motion</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Jeep, Car, Bus and EV options.</p>
               </div>
-              <div className="hairline rounded-2xl bg-card p-5 shadow-soft">
+              <div className="hairline rounded-xl bg-card p-5 shadow-soft">
                 <HeartHandshake className="size-6 text-accent" />
                 <h3 className="mt-3 font-display text-lg text-ink">Personal service</h3>
                 <p className="mt-1 text-sm text-muted-foreground">A real team on the other end.</p>

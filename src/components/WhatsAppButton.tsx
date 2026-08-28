@@ -1,11 +1,13 @@
 import { MessageCircle } from "lucide-react";
-import { primaryWhatsapp } from "@/data/site";
+import { useWhatsappLink } from "@/lib/content";
 
 /** Fixed mobile-first WhatsApp action, present on every page. */
 export function WhatsAppButton() {
+  const href = useWhatsappLink();
+
   return (
     <a
-      href={primaryWhatsapp}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with Trip Zone on WhatsApp"

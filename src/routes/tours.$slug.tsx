@@ -7,30 +7,44 @@ import { TourCard } from "@/components/TourCard";
 import { BookingCTA } from "@/components/BookingCTA";
 import { TravelVideo } from "@/components/TravelVideo";
 import { tourVideos } from "@/data/videos";
-import { formatNpr, getTour, startingPrice, tours, type Tour } from "@/data/tours";
-import { site, telLink, whatsappLink } from "@/data/site";
+import { formatNpr, startingPrice, type Tour } from "@/data/tours";
+import { fetchTour } from "@/data/queries";
+import { telLink, whatsappLink } from "@/data/site";
+import { useSite, useTours, useVideos } from "@/lib/content";
+import { seoHead, tourJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/tours/$slug")({
-  loader: ({ params }) => {
-    const tour = getTour(params.slug);
+  loader: async ({ params }) => {
+    const tour = await fetchTour(params.slug);
     if (!tour) throw notFound();
     return { tour };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Tour not found — Trip Zone" }, { name: "robots", content: "noindex" }],
+        ...seoHead({
+          title: "Tour not found | Trip Zone Travel & Tours",
+          description: "Browse all available Nepal tour packages from Trip Zone Travel & Tours.",
+          path: "/tours",
+          robots: "noindex, follow",
+        }),
       };
     }
     const { tour } = loaderData;
-    const title = `${tour.name} — ${tour.duration} | Trip Zone Travel & Tours`;
+    const title = `${tour.name} - ${tour.duration} | Trip Zone Travel & Tours`;
     const description = `${tour.summary} From ${formatNpr(startingPrice(tour))} per person.`;
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
+      ...seoHead({
+        title,
+        description,
+        path: `/tours/${tour.slug}`,
+        image: tour.image,
+      }),
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(tourJsonLd(tour)),
+        },
       ],
     };
   },
@@ -57,10 +71,14 @@ function TourNotFound() {
 
 function TourDetail() {
   const { tour } = Route.useLoaderData() as { tour: Tour };
+  const site = useSite();
   const from = startingPrice(tour);
-  const others = tours.filter((t) => t.slug !== tour.slug).slice(0, 3);
-  const films = tourVideos(tour.slug);
+  const others = useTours()
+    .filter((t) => t.slug !== tour.slug)
+    .slice(0, 3);
+  const films = tourVideos(tour.slug, useVideos());
   const waText = `Hello Trip Zone, I'm interested in the ${tour.name} (${tour.duration}). Please share availability.`;
+  const bookLink = whatsappLink(site.primaryPhone, waText);
 
   return (
     <>
@@ -68,7 +86,7 @@ function TourDetail() {
       <section className="relative isolate z-20 overflow-hidden bg-ink lg:min-h-[min(760px,92vh)]">
         <img
           src={tour.image}
-          alt={`${tour.name} — ${tour.region}, Nepal`}
+          alt={`${tour.name} in ${tour.region}`}
           className="absolute inset-0 size-full object-cover"
           width={1920}
           height={1080}
@@ -100,19 +118,15 @@ function TourDetail() {
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild variant="accent" size="lg">
-                <a
-                  href={whatsappLink(site.phones[0], waText)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={bookLink} target="_blank" rel="noopener noreferrer">
                   Book This Tour
                   <ArrowRight aria-hidden="true" />
                 </a>
               </Button>
               <Button asChild variant="glass" size="lg">
-                <a href={telLink(site.phones[0])}>
+                <a href={telLink(site.primaryPhone)}>
                   <Phone aria-hidden="true" />
-                  {site.phones[0]}
+                  {site.primaryPhone}
                 </a>
               </Button>
             </div>
@@ -160,7 +174,7 @@ function TourDetail() {
           </Reveal>
 
           <Reveal delay={120}>
-            <aside className="hairline sticky top-24 rounded-3xl bg-card p-7 shadow-soft">
+            <aside className="hairline sticky top-24 rounded-xl bg-card p-7 shadow-soft">
               <h3 className="font-display text-lg text-ink">Price per person</h3>
               <ul className="mt-5 space-y-3">
                 {tour.prices.map((p, i) => (
@@ -180,11 +194,7 @@ function TourDetail() {
               </ul>
               <div className="mt-6 grid gap-2">
                 <Button asChild variant="whatsapp">
-                  <a
-                    href={whatsappLink(site.phones[0], waText)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={bookLink} target="_blank" rel="noopener noreferrer">
                     <MessageCircle aria-hidden="true" />
                     Book on WhatsApp
                   </a>
@@ -223,12 +233,12 @@ function TourDetail() {
               ))}
             </ol>
           ) : (
-            <div className="hairline mt-10 max-w-2xl rounded-2xl bg-card p-6 shadow-soft">
+            <div className="hairline mt-10 max-w-2xl rounded-xl bg-card p-6 shadow-soft">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 The detailed day-by-day itinerary for this package is available on request — we
                 share it exactly as scheduled for your travel dates. Message us on{" "}
                 <a
-                  href={whatsappLink(site.phones[0], waText)}
+                  href={bookLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-primary underline-offset-4 hover:underline"
@@ -246,7 +256,7 @@ function TourDetail() {
       <section className="section-y">
         <div className="container-page grid gap-6 md:grid-cols-2">
           <Reveal>
-            <div className="hairline h-full rounded-3xl bg-card p-7 shadow-soft">
+            <div className="hairline h-full rounded-xl bg-card p-7 shadow-soft">
               <h3 className="font-display text-xl text-ink">Included</h3>
               <ul className="mt-5 space-y-3">
                 {tour.included.map((item) => (
@@ -259,7 +269,7 @@ function TourDetail() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <div className="hairline h-full rounded-3xl bg-secondary/50 p-7">
+            <div className="hairline h-full rounded-xl bg-secondary/50 p-7">
               <h3 className="font-display text-xl text-ink">Not included</h3>
               {tour.excluded.length > 0 ? (
                 <ul className="mt-5 space-y-3">
@@ -280,6 +290,30 @@ function TourDetail() {
           </Reveal>
         </div>
       </section>
+
+      {tour.travelNotes?.length ? (
+        <section className="pb-20">
+          <div className="container-page">
+            <Reveal>
+              <div className="hairline max-w-4xl rounded-xl bg-surface p-7 md:p-9">
+                <span className="eyebrow">Before you travel</span>
+                <h2 className="mt-3 font-display text-2xl text-ink">Travel notes</h2>
+                <ul className="mt-6 grid gap-3 md:grid-cols-2">
+                  {tour.travelNotes.map((note) => (
+                    <li
+                      key={note}
+                      className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground"
+                    >
+                      <Check className="mt-0.5 size-4 shrink-0 text-forest" aria-hidden="true" />
+                      {note}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
 
       {/* Other tours */}
       <section className="pb-20">

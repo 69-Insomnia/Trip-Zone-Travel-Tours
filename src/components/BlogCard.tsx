@@ -4,7 +4,7 @@ import type { BlogPost } from "@/data/blogs";
 
 export function BlogCard({ blog }: { blog: BlogPost }) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition duration-500 hover:-translate-y-1 hover:shadow-lift">
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft transition duration-500 hover:-translate-y-1 hover:shadow-lift">
       <Link
         to="/blogs/$slug"
         params={{ slug: blog.slug }}

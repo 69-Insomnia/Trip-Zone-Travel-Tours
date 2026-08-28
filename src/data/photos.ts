@@ -91,9 +91,28 @@ const photos = {
     src: "/photos/boudhanath.jpg",
     alt: "Boudhanath Stupa in Kathmandu with prayer flags",
   },
+  charDham: {
+    src: "/photos/char-dham.jpg",
+    alt: "Kedarnath Temple beneath the Himalayan peaks in Uttarakhand, India",
+  },
+  amaYangri: {
+    src: "/photos/ama-yangri.jpg",
+    alt: "Mountain landscape on the Ama Yangri trail in Helambu, Nepal",
+  },
+  gosaikunda: {
+    src: "/photos/gosaikunda.jpg",
+    alt: "Gosaikunda Lake surrounded by snowy Himalayan ridges in Langtang, Nepal",
+  },
+  dhorpatan: {
+    src: "/photos/dhorpatan.jpg",
+    alt: "Dhorpatan Hunting Reserve valley in the morning light, Nepal",
+  },
 } satisfies Record<string, Photo>;
 
 export type PhotoKey = keyof typeof photos;
+
+/** Every registered photo, keyed — the source for seeding the `photos` table. */
+export const allPhotos: Record<PhotoKey, Photo> = photos;
 
 /** Look up a registered photo. Keys are checked at compile time. */
 export function photo(key: PhotoKey): Photo {

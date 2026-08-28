@@ -2,13 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatNpr, startingPrice, type Tour } from "@/data/tours";
-import { whatsappLink, site } from "@/data/site";
+import { useWhatsappLink } from "@/lib/content";
 
 export function TourCard({ tour }: { tour: Tour }) {
   const from = startingPrice(tour);
+  const bookLink = useWhatsappLink(
+    `Hello Trip Zone, I'd like to book the ${tour.name} (${tour.duration}).`,
+  );
 
   return (
-    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-border/80 bg-card shadow-soft">
+    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card shadow-soft">
       <Link
         to="/tours/$slug"
         params={{ slug: tour.slug }}
@@ -17,7 +20,7 @@ export function TourCard({ tour }: { tour: Tour }) {
       >
         <img
           src={tour.image}
-          alt={`${tour.name} — ${tour.region}, Nepal`}
+          alt={`${tour.name} in ${tour.region}`}
           loading="lazy"
           width={1280}
           height={960}
@@ -33,7 +36,7 @@ export function TourCard({ tour }: { tour: Tour }) {
         </span>
       </Link>
 
-      <div className="flex flex-1 flex-col p-6 md:p-7">
+      <div className="flex flex-1 flex-col p-5 md:p-6">
         <h3 className="font-display text-[1.35rem] leading-snug text-ink">
           <Link to="/tours/$slug" params={{ slug: tour.slug }} className="hover:text-primary">
             {tour.name}
@@ -78,14 +81,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             </Link>
           </Button>
           <Button asChild variant="accent" className="flex-1">
-            <a
-              href={whatsappLink(
-                site.phones[0],
-                `Hello Trip Zone, I'd like to book the ${tour.name} (${tour.duration}).`,
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={bookLink} target="_blank" rel="noopener noreferrer">
               Book Now
             </a>
           </Button>

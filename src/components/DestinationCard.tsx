@@ -35,7 +35,7 @@ export function DestinationCard({
   );
 
   const shell = cn(
-    "group relative block overflow-hidden rounded-2xl bg-ink shadow-soft card-lift",
+    "group relative block overflow-hidden rounded-xl bg-ink shadow-soft card-lift",
     className,
   );
 

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Maximize2, X } from "lucide-react";
-import { videoPoster, videos as allVideos, type Video } from "@/data/videos";
+import { type Video } from "@/data/videos";
+import { useVideos } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 type TravelVideoProps = {
-  /** Films to show. Defaults to every film on the site. */
+  /** Films to show. Defaults to every film in the database. */
   items?: Video[];
   /** Dock into a floating player once the section scrolls out of view. */
   floating?: boolean;
@@ -12,11 +13,9 @@ type TravelVideoProps = {
   tone?: "dark" | "light";
 };
 
-export function TravelVideo({
-  items = allVideos,
-  floating = true,
-  tone = "dark",
-}: TravelVideoProps) {
+export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVideoProps) {
+  const allVideos = useVideos();
+  const films = items ?? allVideos;
   const sectionRef = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -43,7 +42,7 @@ export function TravelVideo({
     return () => window.removeEventListener("scroll", onScroll);
   }, [floating]);
 
-  const current = items[Math.min(active, items.length - 1)];
+  const current = films[Math.min(active, films.length - 1)];
   if (!current) return null;
 
   return (
@@ -63,7 +62,7 @@ export function TravelVideo({
             controls
             playsInline
             preload="metadata"
-            poster={videoPoster(current).src}
+            poster={current.posterSrc}
             src={current.src}
             title={current.title}
           >
@@ -97,9 +96,9 @@ export function TravelVideo({
         </div>
       </div>
 
-      {items.length > 1 ? (
+      {films.length > 1 ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          {items.map((v, i) => (
+          {films.map((v, i) => (
             <button
               key={v.key}
               type="button"

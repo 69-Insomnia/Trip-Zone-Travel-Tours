@@ -9,7 +9,11 @@
     "build:dev": "node ./node_modules/vite/bin/vite.js build --mode development",
     "preview": "node ./node_modules/vite/bin/vite.js preview",
     "lint": "node ./node_modules/eslint/bin/eslint.js .",
-    "format": "node ./node_modules/prettier/bin/prettier.cjs --write ."
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "db:migrate": "node scripts/db/migrate.mjs",
+    "db:seed": "node --import ./scripts/db/register-ts.mjs scripts/db/seed.mjs",
+    "db:admin": "node scripts/db/create-admin.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

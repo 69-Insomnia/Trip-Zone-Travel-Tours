@@ -4,22 +4,24 @@ import { BookingCTA } from "@/components/BookingCTA";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
-import { destinations } from "@/data/tours";
+import { useDestinations } from "@/lib/content";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/destinations")({
-  head: () => ({
-    meta: [
-      { title: "Nepal Destinations | Trip Zone" },
-      {
-        name: "description",
-        content: "Explore the destinations covered by Trip Zone Travel & Tours across Nepal.",
-      },
-    ],
-  }),
+  head: () =>
+    seoHead({
+      title: "Nepal Travel Destinations | Trip Zone Travel & Tours",
+      description:
+        "Explore Himalayan valleys, pilgrimage sites, lakes, hill towns and nature destinations covered by Trip Zone tours across Nepal.",
+      path: "/destinations",
+      image: "/photos/manang.jpg",
+    }),
   component: DestinationsPage,
 });
 
 function DestinationsPage() {
+  const destinations = useDestinations();
+
   return (
     <>
       <PageHero

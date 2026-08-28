@@ -3,23 +3,26 @@ import { BlogCard } from "@/components/BlogCard";
 import { BookingCTA } from "@/components/BookingCTA";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
-import { blogs } from "@/data/blogs";
+import { fetchBlogs } from "@/data/queries";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blogs/")({
-  head: () => ({
-    meta: [
-      { title: "Nepal Travel Blog | Trip Zone Travel & Tours" },
-      {
-        name: "description",
-        content:
-          "Practical Nepal destination guides, road-trip ideas, pilgrimage tips and local travel advice from Trip Zone.",
-      },
-    ],
-  }),
+  loader: () => fetchBlogs(),
+  head: () =>
+    seoHead({
+      title: "Nepal Travel Blog | Trip Zone Travel & Tours",
+      description:
+        "Practical Nepal destination guides, road-trip ideas, pilgrimage tips and local travel advice from Trip Zone.",
+      path: "/blogs",
+      image:
+        "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=88",
+    }),
   component: BlogsPage,
 });
 
 function BlogsPage() {
+  const blogs = Route.useLoaderData();
+
   return (
     <>
       <PageHero

@@ -1,13 +1,16 @@
 /**
- * Central video registry.
+ * Video registry.
  *
- * Each film is matched to the package it was shot on by its file name, so a
- * tour page shows only its own footage. Files live in `public/` and are served
- * from our own origin — spaces in the file names are percent-encoded here.
- * Keep `&` literal in the path: `%26` is not resolved by the static server.
+ * This is the seed snapshot and the offline fallback — the live site reads the
+ * `videos` table, so a film can be added or swapped from the database. `tours`
+ * decides which package pages show a film; an empty array means a general
+ * company film for the home page.
+ *
+ * Files live in `public/`. Spaces are percent-encoded; keep `&` literal because
+ * `%26` is not resolved by the static server.
  */
 
-import { photo, type PhotoKey } from "./photos";
+import { photo } from "./photos";
 
 export type Video = {
   /** Stable key for lookups. */
@@ -16,9 +19,10 @@ export type Video = {
   title: string;
   /** Served path under `public/`. */
   src: string;
-  /** Poster frame, from the photo registry. */
-  poster: PhotoKey;
-  /** Tour slugs this film belongs to. Empty means it is a general company film. */
+  /** Poster frame shown before playback. */
+  posterSrc: string;
+  posterAlt: string;
+  /** Tour slugs this film belongs to. */
   tours: string[];
 };
 
@@ -27,38 +31,42 @@ export const videos: Video[] = [
     key: "journey",
     title: "Trip Zone journey film",
     src: "/video.MP4",
-    poster: "manangRoad",
+    posterSrc: photo("manangRoad").src,
+    posterAlt: photo("manangRoad").alt,
     tours: [],
   },
   {
     key: "muktinath",
     title: "Muktinath Tour",
     src: "/Muktinath%20Tour.MP4",
-    poster: "muktinath",
+    posterSrc: photo("muktinath").src,
+    posterAlt: photo("muktinath").alt,
     tours: ["muktinath"],
   },
   {
     key: "upper-mustang",
     title: "Upper Mustang",
     src: "/uppermustang.mp4",
-    poster: "mustang",
+    posterSrc: photo("mustang").src,
+    posterAlt: photo("mustang").alt,
     tours: ["muktinath"],
   },
   {
     key: "sailung-kalinchowk",
     title: "Sailung & Kalinchowk",
     src: "/Sailung%20&%20Kalinchowk.MP4",
-    poster: "kalinchowk",
+    posterSrc: photo("kalinchowk").src,
+    posterAlt: photo("kalinchowk").alt,
     tours: ["sailung-kalinchowk"],
   },
 ];
 
-/** Films shot on a given package, in registry order. */
-export function tourVideos(slug: string) {
-  return videos.filter((v) => v.tours.includes(slug));
+/** Films shot on a given package. */
+export function tourVideos(slug: string, list: Video[] = videos) {
+  return list.filter((v) => v.tours.includes(slug));
 }
 
-/** Poster image for a film. */
-export function videoPoster(video: Video) {
-  return photo(video.poster);
+/** Films not tied to a package — shown on the home page. */
+export function generalVideos(list: Video[] = videos) {
+  return list.filter((v) => v.tours.length === 0);
 }

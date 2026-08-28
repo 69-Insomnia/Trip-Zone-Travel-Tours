@@ -1,24 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MapPin, MessageCircle, Phone } from "lucide-react";
+import { ExternalLink, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { Reveal } from "@/components/Reveal";
-import { site, telLink, primaryWhatsapp } from "@/data/site";
+import { telLink } from "@/data/site";
+import { useSite, useWhatsappLink } from "@/lib/content";
 import { PageHero } from "@/components/PageHero";
+import { CONTACT_EMAIL, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      { title: "Contact Trip Zone Travel & Tours" },
-      {
-        name: "description",
-        content:
-          "Contact Trip Zone Travel & Tours in Koteshwor, Kathmandu to plan your Nepal journey.",
-      },
-    ],
-  }),
+  head: () =>
+    seoHead({
+      title: "Contact Trip Zone Travel & Tours | Koteshwor, Kathmandu",
+      description:
+        "Contact Trip Zone Travel & Tours in Koteshwor, Kathmandu by phone, WhatsApp or email to plan your Nepal journey.",
+      path: "/contact",
+      image: "/photos/kathmandu.jpg",
+    }),
   component: ContactPage,
 });
 function ContactPage() {
+  const site = useSite();
+  const whatsapp = useWhatsappLink();
+
   return (
     <>
       <PageHero
@@ -34,22 +37,23 @@ function ContactPage() {
           <Reveal>
             <div className="space-y-6">
               <div>
-                <h2 className="font-display text-2xl text-ink">
-                  Trip Zone Travel & Tours Pvt. Ltd.
-                </h2>
+                <h2 className="font-display text-2xl text-ink">{site.name}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Our office is in Koteshwor, Kathmandu, Nepal.
+                  Our office is in {site.address}.
                 </p>
               </div>
+              {site.phones.map((phone) => (
+                <a
+                  key={phone}
+                  href={telLink(phone)}
+                  className="flex items-start gap-3 text-sm text-muted-foreground hover:text-primary"
+                >
+                  <Phone className="mt-0.5 size-5 text-primary" />
+                  {phone}
+                </a>
+              ))}
               <a
-                href={`tel:+977${site.phones[0]}`}
-                className="flex items-start gap-3 text-sm text-muted-foreground hover:text-primary"
-              >
-                <Phone className="mt-0.5 size-5 text-primary" />
-                {site.phones[0]}
-              </a>
-              <a
-                href={primaryWhatsapp}
+                href={whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-start gap-3 text-sm text-muted-foreground hover:text-primary"
@@ -57,15 +61,41 @@ function ContactPage() {
                 <MessageCircle className="mt-0.5 size-5 text-forest" />
                 Chat on WhatsApp
               </a>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="flex items-start gap-3 text-sm text-muted-foreground hover:text-primary"
+              >
+                <Mail className="mt-0.5 size-5 text-primary" aria-hidden="true" />
+                {CONTACT_EMAIL}
+              </a>
               <p className="flex items-start gap-3 text-sm text-muted-foreground">
-                <MapPin className="mt-0.5 size-5 text-accent" />
+                <MapPin className="mt-0.5 size-5 text-accent" aria-hidden="true" />
                 {site.address}
               </p>
-              <div className="hairline flex min-h-48 items-center justify-center rounded-3xl bg-surface p-8 text-center text-sm text-muted-foreground">
-                Google Maps location placeholder
-                <br />
-                Koteshwor, Kathmandu
-              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hairline group flex min-h-40 flex-col justify-between rounded-xl bg-surface p-6 transition-colors hover:bg-secondary"
+              >
+                <span className="grid size-10 place-items-center rounded-lg bg-card text-primary shadow-soft">
+                  <MapPin className="size-5" aria-hidden="true" />
+                </span>
+                <span className="mt-8 flex items-end justify-between gap-4">
+                  <span>
+                    <span className="block text-xs font-bold uppercase text-muted-foreground">
+                      Visit our office
+                    </span>
+                    <span className="mt-1 block font-display text-lg font-bold text-ink">
+                      Koteshwor, Kathmandu
+                    </span>
+                  </span>
+                  <ExternalLink
+                    className="size-5 shrink-0 text-primary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </span>
+              </a>
             </div>
           </Reveal>
           <Reveal delay={120}>

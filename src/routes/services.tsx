@@ -3,18 +3,17 @@ import { CarFront, ClipboardCheck, Headset, Route as RouteIcon } from "lucide-re
 import { BookingCTA } from "@/components/BookingCTA";
 import { Reveal } from "@/components/Reveal";
 import { PageHero } from "@/components/PageHero";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/services")({
-  head: () => ({
-    meta: [
-      { title: "Travel Services | Trip Zone" },
-      {
-        name: "description",
-        content:
-          "Comfortable transport, itinerary planning and personal support for travel across Nepal.",
-      },
-    ],
-  }),
+  head: () =>
+    seoHead({
+      title: "Nepal Travel Services | Trip Zone Travel & Tours",
+      description:
+        "Comfortable transport, itinerary planning, accommodation coordination and personal support for travel across Nepal.",
+      path: "/services",
+      image: "/photos/manang-road.jpg",
+    }),
   component: ServicesPage,
 });
 
@@ -57,7 +56,7 @@ function ServicesPage() {
             const I = Icon as typeof CarFront;
             return (
               <Reveal key={title as string} delay={i * 80}>
-                <article className="hairline h-full rounded-3xl bg-card p-7 shadow-soft">
+                <article className="hairline h-full rounded-xl bg-card p-7 shadow-soft">
                   <I className="size-7 text-primary" />
                   <h2 className="mt-6 font-display text-2xl text-ink">{title as string}</h2>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

@@ -18,40 +18,36 @@ import { FaqAccordion } from "@/components/FaqAccordion";
 import { BookingCTA } from "@/components/BookingCTA";
 import { TravelVideo } from "@/components/TravelVideo";
 import { BlogCard } from "@/components/BlogCard";
+import { CompanyOverview } from "@/components/CompanyOverview";
 import { Reveal } from "@/components/Reveal";
-import { destinations, tours } from "@/data/tours";
-import { blogs } from "@/data/blogs";
-import { photo } from "@/data/photos";
-import { videos } from "@/data/videos";
-import { primaryWhatsapp } from "@/data/site";
-
-const hero = photo("manang");
-const editorial = photo("manangRoad");
-/** Company films — the per-tour footage lives on each tour page. */
-const generalFilms = videos.filter((v) => v.tours.length === 0);
+import { fetchBlogs } from "@/data/queries";
+import { generalVideos } from "@/data/videos";
+import { useDestinations, usePhoto, useTours, useVideos, useWhatsappLink } from "@/lib/content";
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Trip Zone Travel & Tours | Explore Nepal" },
-      {
-        name: "description",
-        content:
-          "Handpicked Nepal journeys to Manang, Muktinath, Pathivara, Halesi, Sailung and Kalinchowk with transparent prices and comfortable transport.",
-      },
-      { property: "og:title", content: "Explore Nepal with Trip Zone Travel & Tours" },
-      {
-        property: "og:description",
-        content: "Mountain, pilgrimage and nature journeys planned locally in Nepal.",
-      },
-      { property: "og:image", content: "/logo.png" },
-    ],
-  }),
+  loader: () => fetchBlogs(),
+  head: () =>
+    seoHead({
+      title: "Trip Zone Travel & Tours | Nepal Tour Packages",
+      description:
+        "Handpicked Nepal journeys to Manang, Muktinath, Pathivara, Halesi, Sailung, Kalinchowk, Gosaikunda and more with clear prices and comfortable transport.",
+      path: "/",
+      image: "/photos/hero-annapurna.jpg",
+    }),
   component: Index,
 });
 
 function Index() {
-  const featured = tours;
+  const blogs = Route.useLoaderData();
+  const featured = useTours();
+  const destinations = useDestinations();
+  const hero = usePhoto("manang");
+  const editorial = usePhoto("manangRoad");
+  /** Company films — the per-tour footage lives on each tour page. */
+  const generalFilms = generalVideos(useVideos());
+  const whatsapp = useWhatsappLink();
+
   return (
     <>
       <section className="relative isolate z-20 bg-ink lg:min-h-[min(760px,92vh)]">
@@ -60,6 +56,8 @@ function Index() {
           alt={hero.alt}
           className="absolute inset-0 size-full object-cover"
           fetchPriority="high"
+          width="1920"
+          height="1080"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,24,38,.95),rgba(8,24,38,.6)_52%,rgba(8,24,38,.12))]" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-ink/80 to-transparent" />
@@ -84,18 +82,20 @@ function Index() {
                 </Link>
               </Button>
               <Button asChild variant="glass" size="lg">
-                <a href={primaryWhatsapp} target="_blank" rel="noopener noreferrer">
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer">
                   Plan my trip
                 </a>
               </Button>
             </div>
           </div>
-          <div className="pb-1 lg:pb-10">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground/65">
-              Trip Zone journey film
-            </p>
-            <TravelVideo items={generalFilms} />
-          </div>
+          {generalFilms.length > 0 ? (
+            <div className="pb-1 lg:pb-10">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground/65">
+                Trip Zone journey film
+              </p>
+              <TravelVideo items={generalFilms} />
+            </div>
+          ) : null}
         </div>
         <div className="container-page relative z-20 mt-1 pb-2 lg:absolute lg:inset-x-0 lg:bottom-0 lg:mt-0 lg:translate-y-1/2 lg:pb-0">
           <SearchPanel />
@@ -105,8 +105,8 @@ function Index() {
       <section className="relative z-10 border-b border-border bg-card">
         <div className="container-page grid divide-y divide-border pb-8 pt-8 sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:pb-9 md:pt-10 lg:pt-32">
           {[
-            ["10+", "signature Nepal routes"],
-            ["5", "transport choices"],
+            [String(featured.length), "published tour packages"],
+            ["3", "travel styles"],
             ["1:1", "support from first message"],
           ].map(([value, label]) => (
             <div
@@ -137,7 +137,7 @@ function Index() {
             </Button>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((tour, i) => (
+            {featured.slice(0, 6).map((tour, i) => (
               <Reveal key={tour.slug} delay={i * 80}>
                 <TourCard tour={tour} />
               </Reveal>
@@ -185,7 +185,7 @@ function Index() {
               const I = Icon as typeof Compass;
               return (
                 <Reveal key={title as string}>
-                  <div className="hairline h-full rounded-2xl bg-card p-6 shadow-soft">
+                  <div className="hairline h-full rounded-xl bg-card p-6 shadow-soft">
                     <I className="size-6 text-primary" />
                     <h3 className="mt-5 font-display text-xl text-ink">{title as string}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -220,6 +220,8 @@ function Index() {
         </div>
       </section>
 
+      <CompanyOverview />
+
       <section className="section-y bg-ink">
         <div className="container-page grid items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
           <Reveal>
@@ -227,7 +229,9 @@ function Index() {
               src={editorial.src}
               alt={editorial.alt}
               loading="lazy"
-              className="aspect-[4/3] w-full rounded-[2rem] object-cover"
+              className="aspect-[4/3] w-full rounded-xl object-cover"
+              width="1280"
+              height="960"
             />
           </Reveal>
           <Reveal delay={120}>
@@ -276,7 +280,7 @@ function Index() {
             </Button>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {blogs.map((blog) => (
+            {blogs.slice(0, 3).map((blog) => (
               <BlogCard key={blog.slug} blog={blog} />
             ))}
           </div>

@@ -2,7 +2,8 @@
 --
 -- Every table is public-readable through the anon (publishable) key so the site
 -- can render from the database, and only `inquiries` accepts anonymous writes.
--- Editing a row in the Supabase table editor changes the live website.
+-- Editing a row in the Supabase table editor — or in /admin — changes the live
+-- website.
 --
 -- Safe to run repeatedly.
 
@@ -37,11 +38,15 @@ create table if not exists public.tours (
   highlights text[] not null default '{}',
   included text[] not null default '{}',
   excluded text[] not null default '{}',
+  travel_notes text[] not null default '{}',
   sort_order integer not null default 0,
   published boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.tours
+  add column if not exists travel_notes text[] not null default '{}';
 
 create table if not exists public.tour_prices (
   id uuid primary key default gen_random_uuid(),
@@ -241,6 +246,73 @@ create policy "public read testimonials" on public.testimonials
 drop policy if exists "public submit inquiries" on public.inquiries;
 create policy "public submit inquiries" on public.inquiries
   for insert to anon, authenticated with check (status = 'new' and source = 'website');
+
+-- --------------------------------------------------------------- administrators
+-- Who may edit the website from /admin.
+--
+-- Being a Supabase Auth user is not enough: an account only gains write access
+-- once its id is listed here, so even if signups were left open a stranger who
+-- registers can do no more than an anonymous visitor.
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  full_name text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admins enable row level security;
+
+-- security definer: the check must be able to read `admins` regardless of the
+-- policies on it, otherwise every policy below would recurse into this table.
+create or replace function public.is_admin() returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
+
+-- An administrator can confirm their own membership; nobody can list the others.
+drop policy if exists "admins read themselves" on public.admins;
+create policy "admins read themselves" on public.admins
+  for select to authenticated using (user_id = auth.uid());
+
+grant usage on schema public to anon, authenticated;
+grant select on public.admins to authenticated;
+
+-- Administrators may read and write every content table. Row level security
+-- policies are permissive, so these sit alongside the public read policies
+-- above: visitors still see published rows only, administrators see and edit
+-- everything including drafts.
+do $$
+declare
+  tbl text;
+begin
+  foreach tbl in array array[
+    'site_settings', 'tours', 'tour_prices', 'tour_itinerary', 'destinations',
+    'photos', 'videos', 'gallery_items', 'blogs', 'faqs', 'testimonials'
+  ] loop
+    execute format('drop policy if exists "admins manage %1$s" on public.%1$I', tbl);
+    execute format(
+      'create policy "admins manage %1$s" on public.%1$I for all to authenticated
+         using (public.is_admin()) with check (public.is_admin())', tbl);
+    execute format('grant select on public.%1$I to anon, authenticated', tbl);
+    execute format('grant insert, update, delete on public.%1$I to authenticated', tbl);
+  end loop;
+end $$;
+
+-- Inquiries stay unreadable to visitors; administrators get the inbox and may
+-- move a lead through its statuses or delete it.
+drop policy if exists "admins manage inquiries" on public.inquiries;
+create policy "admins manage inquiries" on public.inquiries
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+grant insert on public.inquiries to anon;
+grant select, insert, update, delete on public.inquiries to authenticated;
 
 -- ------------------------------------------------------- updated_at bookkeeping
 create or replace function public.touch_updated_at() returns trigger

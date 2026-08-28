@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -14,6 +15,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "@/components/ui/sonner";
+import { ContentProvider } from "@/lib/content";
+import { fetchSharedContent } from "@/data/queries";
+import { absoluteUrl, organizationJsonLd } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -72,7 +76,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  /**
+   * Content the header, footer and shared sections need on every page. Loaded
+   * once here and handed down through ContentProvider, so a row edited in
+   * Supabase changes the whole site.
+   */
+  loader: () => fetchSharedContent(),
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -85,6 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Trip Zone Travel & Tours Pvt. Ltd." },
       { property: "og:site_name", content: "Trip Zone Travel & Tours" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: absoluteUrl("/photos/hero-annapurna.jpg") },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#153b4a" },
     ],
@@ -98,6 +109,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
+    scripts: loaderData
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify(organizationJsonLd(loaderData.site)),
+          },
+        ]
+      : [],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -121,17 +140,38 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const content = Route.useLoaderData();
+
+  // The admin area is a workspace, not a page of the website: it brings its own
+  // sidebar and must not sit inside the public header, footer and WhatsApp
+  // button. Toasts stay — the editors use them to confirm saves.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Header />
-      <main id="main">
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </main>
-      <Footer />
-      <WhatsAppButton />
-      <Toaster position="top-center" />
+      <ContentProvider content={content}>
+        {isAdmin ? (
+          <Outlet />
+        ) : (
+          <>
+            <a
+              href="#main"
+              className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-lg bg-card px-4 py-2 text-sm font-bold text-ink shadow-panel transition-transform focus:translate-y-0"
+            >
+              Skip to main content
+            </a>
+            <Header />
+            <main id="main">
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </main>
+            <Footer />
+            <WhatsAppButton />
+          </>
+        )}
+        <Toaster position="top-center" />
+      </ContentProvider>
     </QueryClientProvider>
   );
 }

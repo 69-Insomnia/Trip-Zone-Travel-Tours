@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { destinations } from "@/data/tours";
-import { site, whatsappLink } from "@/data/site";
+import { submitInquiry } from "@/data/queries";
+import { whatsappLink } from "@/data/site";
+import { useDestinations, useSite } from "@/lib/content";
 
 type Fields = {
   name: string;
@@ -40,15 +41,24 @@ function validate(values: Fields) {
 }
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-input bg-background px-3.5 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-ring/30";
+  "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-ring/30";
 
-export function ContactForm() {
+export function ContactForm({ tourSlug }: { tourSlug?: string } = {}) {
+  const site = useSite();
+  const destinations = useDestinations();
   const [values, setValues] = useState<Fields>(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [sending, setSending] = useState(false);
 
-  const set = (key: keyof Fields) => (e: { target: { value: string } }) =>
+  const set = (key: keyof Fields) => (e: { target: { value: string } }) => {
     setValues((v) => ({ ...v, [key]: e.target.value }));
+    if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
+  };
+
+  const a11y = (name: keyof Fields) => ({
+    "aria-invalid": Boolean(errors[name]),
+    "aria-describedby": errors[name] ? `${name}-error` : undefined,
+  });
 
   function Field({
     label,
@@ -66,7 +76,13 @@ export function ContactForm() {
         </label>
         {children}
         {errors[name] ? (
-          <p className="mt-1.5 text-xs font-medium text-destructive">{errors[name]}</p>
+          <p
+            id={`${name}-error`}
+            role="alert"
+            className="mt-1.5 text-xs font-medium text-destructive"
+          >
+            {errors[name]}
+          </p>
         ) : null}
       </div>
     );
@@ -81,7 +97,7 @@ export function ContactForm() {
       return;
     }
     setSending(true);
-    // No backend is connected yet — the inquiry is handed off to WhatsApp.
+
     const text = [
       `New inquiry from ${values.name}`,
       `Phone: ${values.phone}`,
@@ -95,19 +111,45 @@ export function ContactForm() {
       .filter(Boolean)
       .join("\n");
 
-    window.open(whatsappLink(site.phones[0], text), "_blank", "noopener,noreferrer");
+    // Opened inside the click so the browser doesn't treat it as a popup. The
+    // inquiry is then stored, so the lead is kept even if WhatsApp is never sent.
+    window.open(whatsappLink(site.primaryPhone, text), "_blank", "noopener,noreferrer");
+
+    let stored = true;
+    try {
+      await submitInquiry({
+        name: values.name,
+        phone: values.phone,
+        message: values.message,
+        ...(values.email.trim() ? { email: values.email } : {}),
+        ...(values.destination ? { destination: values.destination } : {}),
+        ...(values.date ? { travelDate: values.date } : {}),
+        ...(values.travelers ? { travelers: Number(values.travelers) } : {}),
+        ...(tourSlug ? { tourSlug } : {}),
+      });
+    } catch (error) {
+      stored = false;
+      console.error("[inquiry] could not be saved:", error);
+    }
+
     setSending(false);
     setValues(empty);
-    toast.success("Inquiry ready to send", {
-      description: "We opened WhatsApp with your details — press send and we'll reply shortly.",
-    });
+    if (stored) {
+      toast.success("Inquiry received", {
+        description: "We saved your details and opened WhatsApp — press send and we'll reply soon.",
+      });
+    } else {
+      toast.success("Inquiry ready to send", {
+        description: "We opened WhatsApp with your details — press send and we'll reply shortly.",
+      });
+    }
   }
 
   return (
     <form
       onSubmit={onSubmit}
       noValidate
-      className="hairline rounded-2xl bg-card p-5 shadow-soft md:p-7"
+      className="hairline rounded-xl bg-card p-5 shadow-soft md:p-7"
     >
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Name *" name="name">
@@ -118,6 +160,8 @@ export function ContactForm() {
             onChange={set("name")}
             placeholder="Your full name"
             autoComplete="name"
+            required
+            {...a11y("name")}
           />
         </Field>
         <Field label="Phone *" name="phone">
@@ -129,6 +173,8 @@ export function ContactForm() {
             placeholder="98XXXXXXXX"
             inputMode="tel"
             autoComplete="tel"
+            required
+            {...a11y("phone")}
           />
         </Field>
         <Field label="Email" name="email">
@@ -140,6 +186,7 @@ export function ContactForm() {
             placeholder="you@example.com"
             inputMode="email"
             autoComplete="email"
+            {...a11y("email")}
           />
         </Field>
         <Field label="Destination" name="destination">
@@ -148,6 +195,7 @@ export function ContactForm() {
             className={inputClass}
             value={values.destination}
             onChange={set("destination")}
+            {...a11y("destination")}
           >
             <option value="">Select a destination</option>
             {destinations.map((d) => (
@@ -164,6 +212,7 @@ export function ContactForm() {
             className={inputClass}
             value={values.date}
             onChange={set("date")}
+            {...a11y("date")}
           />
         </Field>
         <Field label="Number of travellers" name="travelers">
@@ -176,6 +225,7 @@ export function ContactForm() {
             value={values.travelers}
             onChange={set("travelers")}
             placeholder="2"
+            {...a11y("travelers")}
           />
         </Field>
       </div>
@@ -189,6 +239,8 @@ export function ContactForm() {
             value={values.message}
             onChange={set("message")}
             placeholder="Tell us your plan — dates, group size, preferred vehicle."
+            required
+            {...a11y("message")}
           />
         </Field>
       </div>
@@ -201,11 +253,8 @@ export function ContactForm() {
         disabled={sending}
       >
         <Send aria-hidden="true" />
-        {sending ? "Sending…" : "Send Inquiry"}
+        {sending ? "Sending…" : "Send inquiry"}
       </Button>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Your inquiry opens in WhatsApp so our team can reply instantly.
-      </p>
     </form>
   );
 }

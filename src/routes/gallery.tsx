@@ -1,95 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookingCTA } from "@/components/BookingCTA";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
+import { fetchGallery } from "@/data/queries";
+import { type GalleryItem } from "@/data/gallery";
 import { cn } from "@/lib/utils";
-
-type GalleryItem = {
-  title: string;
-  place: string;
-  category: string;
-  image: string;
-  size?: string;
-};
-
-const gallery: GalleryItem[] = [
-  {
-    title: "Above the tree line",
-    place: "Manang Valley",
-    category: "Mountain",
-    image:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=88",
-    size: "md:col-span-2 md:row-span-2",
-  },
-  {
-    title: "Desert light",
-    place: "Mustang",
-    category: "Landscape",
-    image:
-      "https://images.unsplash.com/photo-1486911278844-a81c5267e227?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "Morning over the hills",
-    place: "Sailung",
-    category: "Nature",
-    image:
-      "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "The long road north",
-    place: "Annapurna region",
-    category: "Road trip",
-    image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "Snowline shrine",
-    place: "Kalinchowk",
-    category: "Pilgrimage",
-    image:
-      "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "Blue hour in the valley",
-    place: "Pokhara",
-    category: "Slow travel",
-    image:
-      "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "Sacred mountain air",
-    place: "Muktinath",
-    category: "Pilgrimage",
-    image:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=88",
-  },
-  {
-    title: "A city of courtyards",
-    place: "Kathmandu",
-    category: "Culture",
-    image:
-      "https://images.unsplash.com/photo-1524498250077-390f9e378fc0?auto=format&fit=crop&w=1600&q=88",
-  },
-];
+import { seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/gallery")({
-  head: () => ({
-    meta: [
-      { title: "Nepal Travel Gallery | Trip Zone" },
-      {
-        name: "description",
-        content:
-          "A visual collection of mountain roads, sacred places and Nepal landscapes from Trip Zone journeys.",
-      },
-    ],
-  }),
+  loader: () => fetchGallery(),
+  head: () =>
+    seoHead({
+      title: "Nepal Travel Gallery | Trip Zone Travel & Tours",
+      description:
+        "See mountain roads, sacred places, villages and Himalayan landscapes featured across Trip Zone journeys in Nepal.",
+      path: "/gallery",
+      image: "/photos/hero-annapurna.jpg",
+    }),
   component: GalleryPage,
 });
 
 function GalleryPage() {
+  const gallery = Route.useLoaderData();
   const [selected, setSelected] = useState<GalleryItem | null>(null);
+  const heroImage = gallery[0]?.image ?? "/photos/hero-annapurna.jpg";
+
+  useEffect(() => {
+    if (!selected) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelected(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selected]);
 
   return (
     <>
@@ -97,7 +46,7 @@ function GalleryPage() {
         eyebrow="The Trip Zone gallery"
         title="Nepal, frame by frame."
         subtitle="A glimpse of the high roads, quiet valleys, sacred places and small moments that make a journey worth taking."
-        image={gallery[0].image}
+        image={heroImage}
         imageAlt="Mountain landscape in Nepal"
         imagePosition="center 42%"
       />
@@ -116,7 +65,7 @@ function GalleryPage() {
                 type="button"
                 onClick={() => setSelected(item)}
                 className={cn(
-                  "group relative overflow-hidden rounded-2xl bg-ink text-left shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "group relative overflow-hidden rounded-xl bg-ink text-left shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   item.size,
                 )}
                 aria-label={`Open ${item.title}, ${item.place}`}
@@ -126,6 +75,8 @@ function GalleryPage() {
                   alt={`${item.title}, ${item.place}`}
                   className="absolute inset-0 size-full object-cover transition duration-700 group-hover:scale-105"
                   loading="lazy"
+                  width="960"
+                  height="720"
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/10 to-transparent" />
                 <span className="absolute inset-x-0 bottom-0 p-5 text-primary-foreground">
@@ -157,9 +108,11 @@ function GalleryPage() {
             <img
               src={selected.image}
               alt={`${selected.title}, ${selected.place}`}
-              className="max-h-[82vh] w-full rounded-2xl object-contain"
+              className="max-h-[82vh] w-full rounded-xl object-contain"
+              width="1600"
+              height="1200"
             />
-            <div className="absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/80 to-transparent p-6 pt-16 text-white">
+            <div className="absolute inset-x-0 bottom-0 rounded-b-xl bg-gradient-to-t from-black/80 to-transparent p-6 pt-16 text-white">
               <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-accent">
                 {selected.category}
               </p>

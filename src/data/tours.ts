@@ -11,6 +11,10 @@ const pathivaraImg = photo("pathivara").src;
 const pokharaImg = photo("pokhara").src;
 const bandipurImg = photo("bandipur").src;
 const kathmanduImg = photo("kathmandu").src;
+const charDhamImg = photo("charDham").src;
+const amaYangriImg = photo("amaYangri").src;
+const gosaikundaImg = photo("gosaikunda").src;
+const dhorpatanImg = photo("dhorpatan").src;
 
 export type PriceOption = {
   /** Vehicle / transport option exactly as quoted by Trip Zone. */
@@ -42,6 +46,7 @@ export type Tour = {
   itinerary: ItineraryDay[];
   included: string[];
   excluded: string[];
+  travelNotes?: string[];
 };
 
 export const tours: Tour[] = [
@@ -257,6 +262,219 @@ export const tours: Tour[] = [
       "Sightseeing",
     ],
     excluded: [],
+  },
+  {
+    slug: "char-dham-pilgrimage-2026",
+    name: "Char Dham Pilgrimage Tour 2026",
+    region: "Uttarakhand, India & Nepal",
+    duration: "14 Nights / 15 Days",
+    nights: 14,
+    days: 15,
+    type: "Pilgrimage",
+    summary:
+      "A 15-day pilgrimage from Nepal through Haridwar and the four sacred Himalayan dhams of Yamunotri, Gangotri, Kedarnath and Badrinath.",
+    overview:
+      "This overland pilgrimage begins in Nepal and crosses into India for the Char Dham circuit in Uttarakhand. The journey includes Haridwar and Rishikesh, temple darshan at Yamunotri, Gangotri, Kedarnath and Badrinath, and a final holy bath at Devghat before returning home.",
+    image: charDhamImg,
+    prices: [{ transport: "Tourist Bus", price: 35000 }],
+    highlights: [
+      "Lumbini - birthplace of Lord Buddha",
+      "Mahakali border crossing into India",
+      "Haridwar - Har Ki Pauri, Kankhal, Mansa Devi, Chandi Devi and Ganga Aarti",
+      "Rishikesh - Ram Jhula and Janaki Jhula",
+      "Yamunotri - holy dip via Janaki Chatti",
+      "Uttarkashi - spiritual river town",
+      "Gangotri - origin of the River Ganga",
+      "Guptkashi - gateway to Kedarnath",
+      "Kedarnath - 18 km trek and evening Aarti",
+      "Badrinath - sacred temple of Lord Vishnu",
+      "Devghat - holy confluence in Nepal",
+    ],
+    itinerary: [
+      { day: 1, route: "Depart from Kathmandu to Lumbini - approximately 12 hours" },
+      { day: 2, route: "Lumbini to Mahendranagar - approximately 8 hours" },
+      { day: 3, route: "Mahendranagar to Haridwar - approximately 8 hours" },
+      { day: 4, route: "Full-day Haridwar sightseeing and evening Ganga Aarti" },
+      { day: 5, route: "Haridwar to Barkot - approximately 8 hours" },
+      {
+        day: 6,
+        route: "Barkot to Janaki Chatti, 5 km trek to Yamunotri, then return to Barkot",
+      },
+      {
+        day: 7,
+        route: "Barkot to Gangotri via Uttarkashi, overnight in Dharali - approximately 8 hours",
+      },
+      { day: 8, route: "Dharali to Sitapur - approximately 12 hours" },
+      { day: 9, route: "18 km trek to Kedarnath and evening Aarti" },
+      { day: 10, route: "Kedarnath darshan and return to Sitapur" },
+      { day: 11, route: "Sitapur to Badrinath - approximately 8 hours" },
+      { day: 12, route: "Badrinath darshan and departure for Ranikhet - approximately 8 hours" },
+      { day: 13, route: "Ranikhet to Chisapani and Nepal entry - approximately 12 hours" },
+      { day: 14, route: "Chisapani to Devghat - approximately 12 hours" },
+      { day: 15, route: "Holy bath in Devghat and return home" },
+    ],
+    included: [
+      "Pure vegetarian meals in the morning and evening",
+      "Tourist-standard bus for the entire journey",
+      "Hotel accommodation for overnight stays",
+      "Drinking water supply",
+      "First-aid and medical support",
+      "Travel insurance",
+      "Professional tour guide",
+      "Dedicated photographer",
+    ],
+    excluded: [],
+    travelNotes: [
+      "Departure points: Kathmandu, Morang, Sunsari and Jhapa.",
+      "Booking email: chamlingsubash55@gmail.com",
+      "Confirm the 2026 departure date and seat availability before booking.",
+    ],
+  },
+  {
+    slug: "ama-yangri-trek",
+    name: "Aama Yangri Trek",
+    region: "Helambu, Sindhupalchok",
+    duration: "1 Night / 2 Days",
+    nights: 1,
+    days: 2,
+    type: "Mountain",
+    summary:
+      "A compact Helambu trek from Kathmandu to Aama Yangri Peak, with village scenery, ridge walking and wide Himalayan views.",
+    overview:
+      "This short trekking package travels from Kathmandu to Tarkeghyang or Chyoumonthang, then climbs to Aama Yangri Peak before returning to Kathmandu. Bus and Jeep options make it suitable for a weekend group departure.",
+    image: amaYangriImg,
+    prices: [
+      { transport: "Bus", price: 4500 },
+      { transport: "Scorpio / Jeep", price: 6000 },
+    ],
+    highlights: [
+      "Aama Yangri Peak",
+      "Helambu village landscapes",
+      "Himalayan ridge views",
+      "Short two-day trekking itinerary",
+    ],
+    itinerary: [
+      { day: 1, route: "Kathmandu to Tarkeghyang / Chyoumonthang" },
+      {
+        day: 2,
+        route: "Hike to Aama Yangri Peak, return to Tarkeghyang, then drive back to Kathmandu",
+      },
+    ],
+    included: [
+      "Lunch",
+      "Breakfast",
+      "Dinner",
+      "Transportation by Scorpio or Jeep",
+      "Room accommodation",
+      "Guide team",
+    ],
+    excluded: [],
+    travelNotes: [
+      "Bring comfortable trekking or light clothing.",
+      "Bring light trekking or sports shoes and a raincoat or umbrella.",
+      "Pack warm clothes, thermals, a warm hat, muffler, gloves and thick trousers.",
+      "Carry a cap, sunglasses, camera, torch and water bottle.",
+      "Bring extra night clothes, your own towel, toothbrush and toothpaste.",
+      "A hiking stick and dry food are optional.",
+      "For groups of 25-30 people, departure and itinerary arrangements can be customized.",
+    ],
+  },
+  {
+    slug: "gosaikunda-trek",
+    name: "Gosaikunda Trek",
+    region: "Langtang, Rasuwa",
+    duration: "3 Nights / 4 Days",
+    nights: 3,
+    days: 4,
+    type: "Pilgrimage",
+    summary:
+      "A four-day spiritual trek to sacred Gosaikunda Lake through alpine forests, Sing Gompa and high Himalayan scenery.",
+    overview:
+      "Designed for travelers with limited time, this package combines the sacred waters of Gosaikunda with forest trails, mountain views and the cultural atmosphere of Sing Gompa. Meals, accommodation and transportation are included.",
+    image: gosaikundaImg,
+    prices: [{ transport: "Tour Package", price: 12500 }],
+    highlights: [
+      "Sacred Gosaikunda Lake",
+      "Stunning Himalayan views",
+      "Sing Gompa Monastery",
+      "Traditional yak cheese tasting",
+      "Alpine forests and fern trails",
+      "Spiritual and cultural experience",
+      "Ideal for time-constrained trekkers, spiritual seekers, nature lovers and photographers",
+    ],
+    itinerary: [
+      { day: 1, route: "Kathmandu to Chandanbari - approximately 6-7 hours" },
+      { day: 2, route: "Chandanbari to Gosaikunda Lake (4,380 m) - approximately 5-6 hours" },
+      { day: 3, route: "Gosaikunda Lake to Chandanbari - approximately 5-6 hours" },
+      { day: 4, route: "Chandanbari to Kathmandu - return journey" },
+    ],
+    included: ["Breakfast", "Lunch", "Dinner", "Hotel room accommodation", "Transportation"],
+    excluded: [],
+  },
+  {
+    slug: "dhorpatan-tour",
+    name: "Dhorpatan Full Tour Package",
+    region: "Dhorpatan, Baglung",
+    duration: "4 Nights / 5 Days",
+    nights: 4,
+    days: 5,
+    type: "Nature",
+    summary:
+      "A five-day road journey through Pokhara and Baglung to Dhorpatan Valley, its villages, reserve landscapes and Himalayan views.",
+    overview:
+      "Travel from Kathmandu through Pokhara and Baglung to explore the wide Dhorpatan Valley and the Dhorpatan Hunting Reserve area. The package includes meals, accommodation, local sightseeing and a tour coordinator throughout the journey.",
+    image: dhorpatanImg,
+    prices: [{ transport: "Tourist Bus / Jeep", price: 17500 }],
+    highlights: [
+      "Phewa Lake and Pokhara Lakeside",
+      "Dhorpatan Valley",
+      "Dhorpatan Hunting Reserve area",
+      "Local village exploration",
+      "Himalayan mountain views",
+      "Campfire or local cultural experience",
+    ],
+    itinerary: [
+      {
+        day: 1,
+        route:
+          "Kathmandu to Pokhara: morning departure, lunch on the way, hotel check-in, Phewa Lake / Lakeside visit, dinner and overnight stay",
+      },
+      {
+        day: 2,
+        route:
+          "Pokhara to Dhorpatan via Baglung: breakfast, scenic drive, lunch on the way, lodge check-in, evening exploration, dinner and overnight stay",
+      },
+      {
+        day: 3,
+        route:
+          "Full-day Dhorpatan exploration: valley, reserve area, local villages, Himalayan views, picnic lunch, campfire or cultural experience, dinner and overnight stay",
+      },
+      {
+        day: 4,
+        route:
+          "Dhorpatan to Baglung / Pokhara: breakfast, scenic return drive, lunch, hotel check-in, leisure time or Lakeside visit, dinner and overnight stay",
+      },
+      {
+        day: 5,
+        route: "Pokhara to Kathmandu: breakfast, departure, lunch on the way and tour conclusion",
+      },
+    ],
+    included: [
+      "Tourist bus or Jeep transportation",
+      "Hotel and lodge accommodation",
+      "Breakfast, lunch and dinner",
+      "Dhorpatan local sightseeing",
+      "Professional tour coordinator or guide",
+      "Necessary travel arrangements",
+      "Government taxes and service charges, where applicable",
+    ],
+    excluded: [
+      "Personal expenses",
+      "Shopping",
+      "Beverages and alcoholic drinks",
+      "Travel insurance",
+      "Activities or services not mentioned in the package",
+    ],
   },
 ];
 

@@ -1,7 +1,8 @@
 import { MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/Reveal";
-import { site, telLink, whatsappLink } from "@/data/site";
+import { telLink } from "@/data/site";
+import { useSite, useWhatsappLink } from "@/lib/content";
 
 export function BookingCTA({
   title = "Ready to Explore Nepal?",
@@ -10,6 +11,10 @@ export function BookingCTA({
   title?: string;
   subtitle?: string;
 }) {
+  const site = useSite();
+  const whatsapp = useWhatsappLink();
+  const secondPhone = site.phones[1];
+
   return (
     <section className="section-y bg-ink">
       <div className="container-page">
@@ -20,27 +25,29 @@ export function BookingCTA({
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild variant="whatsapp" size="lg" className="w-full sm:w-auto">
-              <a href={whatsappLink(site.phones[0])} target="_blank" rel="noopener noreferrer">
+              <a href={whatsapp} target="_blank" rel="noopener noreferrer">
                 <MessageCircle aria-hidden="true" />
                 WhatsApp Now
               </a>
             </Button>
             <Button asChild variant="glass" size="lg" className="w-full sm:w-auto">
-              <a href={telLink(site.phones[0])}>
+              <a href={telLink(site.primaryPhone)}>
                 <Phone aria-hidden="true" />
-                Call {site.phones[0]}
+                Call {site.primaryPhone}
               </a>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-primary-foreground/60">
-            Or reach us on{" "}
-            <a
-              href={telLink(site.phones[1])}
-              className="font-semibold text-accent underline-offset-4 hover:underline"
-            >
-              {site.phones[1]}
-            </a>
-          </p>
+          {secondPhone ? (
+            <p className="mt-6 text-sm text-primary-foreground/60">
+              Or reach us on{" "}
+              <a
+                href={telLink(secondPhone)}
+                className="font-semibold text-accent underline-offset-4 hover:underline"
+              >
+                {secondPhone}
+              </a>
+            </p>
+          ) : null}
         </Reveal>
       </div>
     </section>

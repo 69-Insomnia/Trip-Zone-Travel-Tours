@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Clock, MapPin, Menu, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { primaryWhatsapp, site } from "@/data/site";
-import { tours } from "@/data/tours";
+import { BrandLogo } from "@/components/BrandLogo";
+import { useSite, useTours, useWhatsappLink } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 const desktopNav = [
@@ -18,6 +18,9 @@ const desktopNav = [
 const mobileNav = [{ label: "Home", to: "/" }, ...desktopNav, { label: "Contact", to: "/contact" }];
 
 export function Header() {
+  const site = useSite();
+  const tours = useTours();
+  const whatsapp = useWhatsappLink();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [mobileToursOpen, setMobileToursOpen] = useState(false);
@@ -52,13 +55,7 @@ export function Header() {
       <div className="container-page">
         <div className="grid h-[4.75rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:grid-cols-[auto_1fr_auto]">
           <Link to="/" className="flex min-w-0 items-center gap-2.5" onClick={() => setOpen(false)}>
-            <img
-              src="/logo.png"
-              alt="Trip Zone Travel & Tours"
-              className="size-11 shrink-0 rounded-xl bg-white p-1 object-contain shadow-sm"
-              width="44"
-              height="44"
-            />
+            <BrandLogo />
             <span className="min-w-0">
               <span
                 className={cn(
@@ -85,6 +82,7 @@ export function Header() {
                 <div key={item.to} className="group relative">
                   <Link
                     to="/tours"
+                    aria-haspopup="true"
                     className={cn(
                       "relative flex items-center gap-1 rounded-lg px-3 py-3 text-[0.78rem] font-extrabold transition-all duration-200 after:absolute after:inset-x-3 after:bottom-2 after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform group-hover:bg-white/10 group-hover:after:scale-x-100",
                       navTone,
@@ -95,14 +93,14 @@ export function Header() {
                     <ChevronDown className="size-3.5 transition-transform group-hover:rotate-180" />
                   </Link>
 
-                  <div className="invisible fixed left-1/2 top-[4.35rem] z-50 w-[min(68rem,calc(100vw-3rem))] -translate-x-1/2 translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                    <div className="grid grid-cols-[15rem_1fr] overflow-hidden rounded-2xl border border-border bg-card text-ink shadow-panel">
-                      <div className="flex flex-col justify-between bg-ink p-6 text-primary-foreground">
+                  <div className="invisible fixed left-1/2 top-[4.35rem] z-50 w-[min(74rem,calc(100vw-3rem))] -translate-x-1/2 translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    <div className="grid max-h-[min(36rem,calc(100vh-6rem))] grid-cols-[14rem_1fr] overflow-y-auto rounded-xl border border-border bg-card text-ink shadow-panel">
+                      <div className="sticky top-0 flex min-h-full flex-col justify-between bg-ink p-5 text-primary-foreground">
                         <div>
                           <span className="text-[0.63rem] font-extrabold uppercase tracking-[0.16em] text-accent">
                             Explore Nepal
                           </span>
-                          <p className="mt-3 font-display text-2xl font-extrabold leading-tight">
+                          <p className="mt-3 font-display text-xl font-extrabold leading-tight">
                             Choose a journey that fits your pace.
                           </p>
                           <p className="mt-3 text-xs leading-relaxed text-primary-foreground/65">
@@ -118,25 +116,27 @@ export function Header() {
                         </Link>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-1 p-4">
+                      <div className="grid grid-cols-3 content-start gap-1 p-3">
                         {tours.map((tour) => (
                           <Link
                             key={tour.slug}
                             to="/tours/$slug"
                             params={{ slug: tour.slug }}
-                            className="group/item grid grid-cols-[4.5rem_1fr] items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-secondary"
+                            className="group/item grid min-w-0 grid-cols-[4rem_1fr] items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-secondary"
                           >
                             <img
                               src={tour.image}
                               alt=""
-                              className="aspect-[1.35] w-full rounded-lg object-cover"
+                              className="aspect-[1.25] w-full rounded-md object-cover"
                               loading="lazy"
+                              width="80"
+                              height="64"
                             />
                             <span className="min-w-0">
                               <span className="block truncate text-sm font-extrabold group-hover/item:text-primary">
                                 {tour.name}
                               </span>
-                              <span className="mt-1 flex items-center gap-2 text-[0.64rem] font-semibold text-muted-foreground">
+                              <span className="mt-1 flex items-center gap-1.5 text-[0.62rem] font-semibold text-muted-foreground">
                                 <span className="flex min-w-0 items-center gap-1">
                                   <MapPin className="size-3 shrink-0" />
                                   <span className="truncate">{tour.region}</span>
@@ -171,12 +171,7 @@ export function Header() {
 
           <div className="hidden items-center gap-2 lg:flex">
             <Button asChild variant={scrolled ? "ghost" : "glass"} size="icon" className="size-9">
-              <a
-                href={primaryWhatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp us"
-              >
+              <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp us">
                 <MessageCircle />
               </a>
             </Button>
@@ -203,6 +198,8 @@ export function Header() {
       </div>
 
       <div
+        aria-hidden={!open}
+        inert={!open}
         className={cn(
           "overflow-hidden border-b border-border bg-background transition-[max-height,opacity] duration-300 lg:hidden",
           open ? "max-h-[calc(100vh-4.75rem)] overflow-y-auto opacity-100" : "max-h-0 opacity-0",
@@ -237,6 +234,8 @@ export function Header() {
                     </button>
                   </div>
                   <div
+                    aria-hidden={!mobileToursOpen}
+                    inert={!mobileToursOpen}
                     className={cn(
                       "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300",
                       mobileToursOpen
@@ -257,9 +256,12 @@ export function Header() {
                             src={tour.image}
                             alt=""
                             className="aspect-[1.2] w-full rounded-lg object-cover"
+                            loading="lazy"
+                            width="70"
+                            height="58"
                           />
-                          <span>
-                            <span className="block text-sm font-extrabold text-ink">
+                          <span className="min-w-0">
+                            <span className="block text-sm font-extrabold leading-snug text-ink">
                               {tour.name}
                             </span>
                             <span className="text-[0.68rem] font-semibold text-muted-foreground">
@@ -287,9 +289,9 @@ export function Header() {
           </nav>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             <Button asChild variant="whatsapp">
-              <a href={primaryWhatsapp} target="_blank" rel="noopener noreferrer">
+              <a href={whatsapp} target="_blank" rel="noopener noreferrer">
                 <MessageCircle />
-                WhatsApp {site.phones[0]}
+                WhatsApp {site.primaryPhone}
               </a>
             </Button>
             <Button asChild variant="accent">
