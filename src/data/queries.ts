@@ -23,7 +23,7 @@ import {
 } from "./tours";
 import { blogs as fallbackBlogs, type BlogPost, type BlogSection } from "./blogs";
 import { galleryItems as fallbackGallery, type GalleryItem } from "./gallery";
-import { videos as fallbackVideos, type Video } from "./videos";
+import { videoSource, videos as fallbackVideos, type Video } from "./videos";
 import { allPhotos as fallbackPhotos, type Photo, type PhotoKey } from "./photos";
 import { site as fallbackSite } from "./site";
 import { isValidExternalUrl, normalizeExternalUrl } from "@/lib/external-url";
@@ -302,7 +302,7 @@ export async function fetchVideos(): Promise<Video[]> {
     return rows.map((row) => ({
       key: row.key,
       title: row.title,
-      src: row.src,
+      src: videoSource(row.src),
       posterSrc: row.poster_src,
       posterAlt: row.poster_alt ?? "",
       tours: row.tour_slugs ?? [],

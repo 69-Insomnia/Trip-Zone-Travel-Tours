@@ -17,10 +17,12 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
   const allVideos = useVideos();
   const films = items ?? allVideos;
   const sectionRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [docked, setDocked] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [active, setActive] = useState(0);
+  const current = films[Math.min(active, films.length - 1)];
 
   useEffect(() => {
     if (!floating) return;
@@ -42,7 +44,22 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
     return () => window.removeEventListener("scroll", onScroll);
   }, [floating]);
 
-  const current = films[Math.min(active, films.length - 1)];
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Calling play after media is ready handles browsers that ignore the
+    // declarative autoplay attribute during hydration or source changes.
+    video.muted = true;
+    const startPlayback = () => void video.play().catch(() => undefined);
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      startPlayback();
+      return;
+    }
+    video.addEventListener("loadeddata", startPlayback, { once: true });
+    return () => video.removeEventListener("loadeddata", startPlayback);
+  }, [current?.src]);
+
   if (!current) return null;
 
   return (
@@ -58,6 +75,7 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
         >
           <video
             key={current.src}
+            ref={videoRef}
             className="aspect-video w-full object-cover"
             autoPlay
             controls
@@ -65,9 +83,9 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
             playsInline
             preload="auto"
             poster={current.posterSrc}
-            src={current.src}
             title={current.title}
           >
+            <source src={current.src} type="video/mp4" />
             Your browser does not support HTML video.
           </video>
           {docked ? (

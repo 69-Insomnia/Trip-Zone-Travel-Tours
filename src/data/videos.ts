@@ -12,6 +12,21 @@
 
 import { photo } from "./photos";
 
+// Production hosts may check out Git LFS files as pointer text instead of the
+// binary asset. GitHub's media endpoint serves the tracked LFS object directly.
+const GITHUB_LFS_MEDIA_BASE =
+  "https://media.githubusercontent.com/media/69-Insomnia/Trip-Zone-Travel-Tours/main";
+
+export function videoSource(path: string) {
+  if (!import.meta.env.PROD || !path.startsWith("/")) return path;
+  const decodedPath = decodeURIComponent(path);
+  const encodedPath = decodedPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${GITHUB_LFS_MEDIA_BASE}${encodedPath}`;
+}
+
 export type Video = {
   /** Stable key for lookups. */
   key: string;
@@ -30,7 +45,7 @@ export const videos: Video[] = [
   {
     key: "journey",
     title: "Trip Zone journey film",
-    src: "/video.MP4",
+    src: videoSource("/video.MP4"),
     posterSrc: photo("manangRoad").src,
     posterAlt: photo("manangRoad").alt,
     tours: [],
@@ -38,7 +53,7 @@ export const videos: Video[] = [
   {
     key: "muktinath",
     title: "Muktinath Tour",
-    src: "/Muktinath%20Tour.MP4",
+    src: videoSource("/Muktinath Tour.MP4"),
     posterSrc: photo("muktinath").src,
     posterAlt: photo("muktinath").alt,
     tours: ["muktinath"],
@@ -46,7 +61,7 @@ export const videos: Video[] = [
   {
     key: "upper-mustang",
     title: "Upper Mustang",
-    src: "/uppermustang.mp4",
+    src: videoSource("/uppermustang.mp4"),
     posterSrc: photo("mustang").src,
     posterAlt: photo("mustang").alt,
     tours: ["muktinath"],
@@ -54,7 +69,7 @@ export const videos: Video[] = [
   {
     key: "sailung-kalinchowk",
     title: "Sailung & Kalinchowk",
-    src: "/Sailung%20&%20Kalinchowk.MP4",
+    src: videoSource("/Sailung & Kalinchowk.MP4"),
     posterSrc: photo("kalinchowk").src,
     posterAlt: photo("kalinchowk").alt,
     tours: ["sailung-kalinchowk"],
