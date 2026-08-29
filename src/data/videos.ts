@@ -19,12 +19,13 @@ const GITHUB_LFS_MEDIA_BASE =
 
 export function videoSource(path: string) {
   if (!import.meta.env.PROD || !path.startsWith("/")) return path;
-  const decodedPath = decodeURIComponent(path);
-  const encodedPath = decodedPath
+  const decodedPath = decodeURIComponent(path).replace(/^\/+/, "");
+  const repositoryPath = decodedPath.startsWith("public/") ? decodedPath : `public/${decodedPath}`;
+  const encodedPath = repositoryPath
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
-  return `${GITHUB_LFS_MEDIA_BASE}${encodedPath}`;
+  return `${GITHUB_LFS_MEDIA_BASE}/${encodedPath}`;
 }
 
 export type Video = {
