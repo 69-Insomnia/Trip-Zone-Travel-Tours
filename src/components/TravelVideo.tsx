@@ -59,9 +59,11 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
           <video
             key={current.src}
             className="aspect-video w-full object-cover"
+            autoPlay
             controls
+            muted
             playsInline
-            preload="metadata"
+            preload="auto"
             poster={current.posterSrc}
             src={current.src}
             title={current.title}
