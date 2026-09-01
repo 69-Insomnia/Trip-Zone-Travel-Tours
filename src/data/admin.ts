@@ -46,8 +46,23 @@ export async function deleteRow(table: string, id: string | number, idKey = "id"
   if (error) throw new Error(error.message);
 }
 
+/** One view photograph as the tour editor hands it over, before it is written. */
+type ViewInput = {
+  title: string;
+  place: string;
+  elevation: string;
+  mountainName: string;
+  mountainElevation: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  photoNote: string;
+  credit: string;
+  creditUrl: string;
+};
+
 /**
- * Replaces a tour's prices and itinerary.
+ * Replaces a tour's prices, itinerary and view photographs.
  *
  * Deleting and re-inserting keeps the rows in exactly the order shown in the
  * editor without having to reconcile ids, and the child tables are small.
@@ -56,6 +71,7 @@ export async function replaceTourChildren(
   tourId: string,
   prices: { transport: string; price: number; note: string | null }[],
   itinerary: { day: number; route: string }[],
+  views: ViewInput[],
 ): Promise<void> {
   const client = adminClient();
 
@@ -82,6 +98,29 @@ export async function replaceTourChildren(
       .insert(itinerary.map((d) => ({ tour_id: tourId, day: d.day, route: d.route })));
     if (error) throw new Error(error.message);
   }
+
+  const dropViews = await client.from("tour_views").delete().eq("tour_id", tourId);
+  if (dropViews.error) throw new Error(dropViews.error.message);
+  if (views.length > 0) {
+    const { error } = await client.from("tour_views").insert(
+      views.map((v, i) => ({
+        tour_id: tourId,
+        title: v.title,
+        place: v.place,
+        elevation: v.elevation,
+        mountain_name: v.mountainName,
+        mountain_elevation: v.mountainElevation,
+        description: v.description,
+        image: v.image,
+        image_alt: v.imageAlt,
+        photo_note: v.photoNote,
+        credit: v.credit,
+        credit_url: v.creditUrl,
+        sort_order: i,
+      })),
+    );
+    if (error) throw new Error(error.message);
+  }
 }
 
 // ------------------------------------------------------------------- inquiries
@@ -93,7 +132,13 @@ export type Inquiry = {
   email: string | null;
   destination: string | null;
   travel_date: string | null;
+  travel_time: string | null;
   travelers: number | null;
+  pickup_location: string | null;
+  vehicle_name: string | null;
+  vehicle_image: string | null;
+  fare_label: string | null;
+  quoted_price: number | null;
   message: string;
   tour_slug: string | null;
   status: string;
@@ -104,18 +149,41 @@ export type Inquiry = {
 export const INQUIRY_STATUSES = ["new", "contacted", "booked", "closed"] as const;
 
 export async function listInquiries(): Promise<Inquiry[]> {
-  const { data, error } = await adminClient()
+  const client = adminClient();
+  const expanded = await client
+    .from("inquiries")
+    .select(
+      "id, name, phone, email, destination, travel_date, travel_time, travelers, pickup_location, vehicle_name, vehicle_image, fare_label, quoted_price, message, tour_slug, status, source, created_at",
+    )
+    .order("created_at", { ascending: false });
+  if (!expanded.error) return (expanded.data ?? []) as Inquiry[];
+
+  // Keep the inbox readable while an existing deployment is waiting for the
+  // additive booking migration to be applied.
+  const legacy = await client
     .from("inquiries")
     .select(
       "id, name, phone, email, destination, travel_date, travelers, message, tour_slug, status, source, created_at",
     )
     .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as Inquiry[];
+  if (legacy.error) throw new Error(legacy.error.message);
+  return (legacy.data ?? []).map((row) => ({
+    ...row,
+    travel_time: null,
+    pickup_location: null,
+    vehicle_name: null,
+    vehicle_image: null,
+    fare_label: null,
+    quoted_price: null,
+  })) as Inquiry[];
 }
 
 export async function setInquiryStatus(id: string, status: string): Promise<void> {
   await updateRow("inquiries", id, { status });
+}
+
+export async function deleteInquiry(id: string): Promise<void> {
+  await deleteRow("inquiries", id);
 }
 
 /** Row counts for the dashboard. `head: true` fetches the count without rows. */

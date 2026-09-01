@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
+  BusFront,
+  CarFront,
   Compass,
   HeartHandshake,
   Map,
   ShieldCheck,
   Sparkles,
+  Route as RouteIcon,
   Users,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -195,6 +198,115 @@ function Index() {
                 </Reveal>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-y">
+        <div className="container-page grid items-center gap-12 lg:grid-cols-[.9fr_1.1fr]">
+          <div>
+            <SectionHeading
+              eyebrow="Vehicle hire and travel services"
+              title="The right way to get there"
+              subtitle="Book a comfortable car, EV, Scorpio, EV van or tourist bus with a driver and a Trip Zone team that knows Nepal's roads."
+            />
+            <div className="mt-9 divide-y divide-border border-y border-border">
+              {[
+                [
+                  CarFront,
+                  "Car and EV hire",
+                  "Clean, well-maintained vehicles for couples, families and private routes.",
+                ],
+                [
+                  BusFront,
+                  "EV vans and tourist buses",
+                  "Room for small groups and larger departures, matched to your passenger count.",
+                ],
+                [
+                  RouteIcon,
+                  "Route and itinerary planning",
+                  "Stops, accommodation, meals and sightseeing arranged around your dates.",
+                ],
+                [
+                  ShieldCheck,
+                  "Comfort and peace of mind",
+                  "Insurance coverage, AC or heater seating and personal support from first message.",
+                ],
+              ].map(([Icon, title, copy]) => {
+                const I = Icon as typeof CarFront;
+                return (
+                  <div key={title as string} className="flex gap-4 py-5">
+                    <I className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <h3 className="font-display text-lg font-semibold text-ink">
+                        {title as string}
+                      </h3>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        {copy as string}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Button asChild variant="outline" className="mt-8">
+              <Link to="/services">
+                View vehicle hire and prices <ArrowRight />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:gap-5">
+            <Reveal className="col-span-2">
+              <figure className="group relative overflow-hidden rounded-xl bg-ink">
+                <img
+                  src="/vehicles/ev-suv.png"
+                  alt="Electric SUV available for private Nepal travel"
+                  className="aspect-[16/8] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                  loading="lazy"
+                  width="1280"
+                  height="640"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent p-5 pt-14 text-primary-foreground">
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                    Private travel
+                  </span>
+                  <span className="mt-1 block font-display text-xl font-bold">
+                    Electric SUVs and cars
+                  </span>
+                </figcaption>
+              </figure>
+            </Reveal>
+            <Reveal delay={100}>
+              <figure className="group relative overflow-hidden rounded-xl bg-ink">
+                <img
+                  src="/vehicles/scorpio.png"
+                  alt="Scorpio Jeep for group and hill routes"
+                  className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                  loading="lazy"
+                  width="960"
+                  height="720"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent p-4 pt-12 text-primary-foreground">
+                  <span className="font-display text-lg font-bold">Scorpio / Jeep</span>
+                </figcaption>
+              </figure>
+            </Reveal>
+            <Reveal delay={160}>
+              <figure className="group relative overflow-hidden rounded-xl bg-ink">
+                <img
+                  src="/vehicles/tourist-bus-kathmandu.jpg"
+                  alt="Tourist bus in Kathmandu for group departures"
+                  className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                  loading="lazy"
+                  width="960"
+                  height="720"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent p-4 pt-12 text-primary-foreground">
+                  <span className="font-display text-lg font-bold">Tourist buses</span>
+                </figcaption>
+              </figure>
+            </Reveal>
           </div>
         </div>
       </section>

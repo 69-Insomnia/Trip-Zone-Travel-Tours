@@ -58,6 +58,16 @@ gallery, films and page photographs, FAQs, testimonials, the company details in
 the header and footer, and an inbox of contact form inquiries. A save is live on
 the website immediately. Unpublished rows are visible in `/admin` only.
 
+Films and photographs are uploaded from the computer you are editing on: choose
+or drop a file in the editor and it goes into the public `media` bucket in
+Supabase Storage, with the record keeping the URL of the stored file. There is no
+box for pasting a link or a path — every new film and photograph comes off a
+device, and the files that shipped in `public/` keep working until they are
+replaced. `npm run db:migrate` creates the bucket — reading it is public,
+uploading needs an account listed in `admins`. One upload is capped at 512 MB by
+the bucket and, on the Supabase free plan, at 50 MB by the project; raise the
+project cap under Storage → Settings if a film is bigger.
+
 Create an administrator, or reset a forgotten password:
 
 ```sh

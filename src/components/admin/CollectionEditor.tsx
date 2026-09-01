@@ -47,7 +47,8 @@ export type Collection = {
 function payloadOf(collection: Collection, draft: AdminRow): AdminRow {
   const payload: AdminRow = {};
   for (const field of collection.fields) {
-    if (field.kind === "prices" || field.kind === "itinerary") continue;
+    // Child tables of their own, saved by `afterSave` rather than as columns.
+    if (field.kind === "prices" || field.kind === "itinerary" || field.kind === "views") continue;
     payload[field.name] = draft[field.name];
   }
   return payload;

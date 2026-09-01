@@ -1,5 +1,14 @@
 import { galleryItems } from "./gallery";
 import { photo } from "./photos";
+import { viewPhotos } from "./view-photos";
+
+/**
+ * Seed snapshot of the "Places & mountain views" section.
+ *
+ * The live section reads `tour_views` and the `views_*` columns of
+ * `site_settings` from the database; this file is what a tour page falls back to
+ * when the database cannot be reached.
+ */
 
 export type TourView = {
   title: string;
@@ -10,8 +19,46 @@ export type TourView = {
   description: string;
   image: string;
   imageAlt: string;
+  /** Replaces the shared photo note for this viewpoint only. */
+  photoNote?: string;
+  /** Photographer and licence, when the photograph came from Wikimedia Commons. */
+  credit?: string;
+  /** Page the photograph came from, linked by the credit. */
+  creditUrl?: string;
 };
 
+/** The wording around the grid, editable in /admin/settings. */
+export type TourViewCopy = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  /** Small print under the grid. */
+  footnote: string;
+  elevationLabel: string;
+  mountainLabel: string;
+  noteLabel: string;
+  /** Shown for a viewpoint that has no note of its own. */
+  noteText: string;
+};
+
+export const tourViewCopy: TourViewCopy = {
+  eyebrow: "Places & mountain views",
+  title: "See what you will experience",
+  subtitle:
+    "A visual route guide to the places, ridges and mountain horizons included in this package. Select any image for the full view details.",
+  footnote:
+    "Elevations are approximate reference values. Mountain visibility depends on season, weather and the exact viewpoint on the day.",
+  elevationLabel: "Viewpoint elevation",
+  mountainLabel: "Mountain / ridge",
+  noteLabel: "Photo note",
+  noteText: "View conditions vary by season and weather.",
+};
+
+/**
+ * Stand-in photographs. Each viewpoint below prefers a photograph of the actual
+ * place from src/data/view-photos.ts; these cover the few subjects Wikimedia
+ * Commons has nothing usable for, which is why every `view()` still names one.
+ */
 const scenicImages = [
   photo("manangRoad"),
   photo("manang"),
@@ -34,6 +81,21 @@ const scenicImages = [
   ...galleryItems.map((item) => ({ src: item.image, alt: `${item.title} at ${item.place}` })),
 ];
 
+/**
+ * How a viewpoint is matched to its photograph: "Muktinath Temple" plus "Sacred
+ * flame and snow" becomes `muktinath-temple--sacred-flame-and-snow`. The photo
+ * script writes the same key, so a viewpoint keeps its photograph as long as the
+ * place and the title are unchanged.
+ */
+export function viewPhotoKey(place: string, title: string): string {
+  const part = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  return `${part(place)}--${part(title)}`;
+}
+
 function view(
   title: string,
   place: string,
@@ -41,20 +103,24 @@ function view(
   mountainName: string,
   mountainElevation: string,
   description: string,
-  imageIndex: number,
+  standInIndex: number,
 ): TourView {
-  const image = scenicImages[imageIndex % scenicImages.length] ?? scenicImages[0];
-  if (!image) throw new Error("Tour view image pool is empty");
-  return {
-    title,
-    place,
-    elevation,
-    mountainName,
-    mountainElevation,
-    description,
-    image: image.src,
-    imageAlt: image.alt,
-  };
+  const subject = { title, place, elevation, mountainName, mountainElevation, description };
+
+  const found = viewPhotos[viewPhotoKey(place, title)];
+  if (found) {
+    return {
+      ...subject,
+      image: found.image,
+      imageAlt: found.alt,
+      credit: found.credit,
+      creditUrl: found.creditUrl,
+    };
+  }
+
+  const standIn = scenicImages[standInIndex % scenicImages.length] ?? scenicImages[0];
+  if (!standIn) throw new Error("Tour view image pool is empty");
+  return { ...subject, image: standIn.src, imageAlt: standIn.alt };
 }
 
 export const tourViews: Record<string, TourView[]> = {

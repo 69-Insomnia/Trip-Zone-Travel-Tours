@@ -25,6 +25,23 @@ try {
   `;
   console.log("Schema applied. Tables:");
   for (const t of tables) console.log(`  ${t.table_name} (${t.policies} policy)`);
+
+  // Notices are silenced on this connection, so the bucket the admin uploader
+  // writes to is reported here rather than from inside the schema.
+  const [bucket] = await sql`
+    select public, file_size_limit from storage.buckets where id = 'media'
+  `;
+  if (bucket) {
+    const limit = Math.round(Number(bucket.file_size_limit) / (1024 * 1024));
+    console.log(
+      `Media bucket: media (${bucket.public ? "public" : "PRIVATE — uploads will not display"}, up to ${limit} MB per file)`,
+    );
+  } else {
+    console.log(
+      'Media bucket: missing. Create a public bucket named "media" under Storage in the\n' +
+        "  Supabase dashboard, then run the media uploads block of schema.sql from the SQL editor.",
+    );
+  }
 } catch (error) {
   console.error("Migration failed:", error.message);
   process.exitCode = 1;

@@ -7,8 +7,8 @@ import { TourCard } from "@/components/TourCard";
 import { BookingCTA } from "@/components/BookingCTA";
 import { TravelVideo } from "@/components/TravelVideo";
 import { TourViews } from "@/components/TourViews";
+import { TourWay } from "@/components/TourWay";
 import { tourVideos } from "@/data/videos";
-import { getTourViews } from "@/data/tour-views";
 import { formatNpr, startingPrice, type Tour } from "@/data/tours";
 import { fetchTour } from "@/data/queries";
 import { telLink, whatsappLink } from "@/data/site";
@@ -79,7 +79,7 @@ function TourDetail() {
     .filter((t) => t.slug !== tour.slug)
     .slice(0, 3);
   const films = tourVideos(tour.slug, useVideos());
-  const views = getTourViews(tour.slug);
+  const views = tour.views ?? [];
   const waText = `Hello Trip Zone, I'm interested in the ${tour.name} (${tour.duration}). Please share availability.`;
   const bookLink = whatsappLink(site.primaryPhone, waText);
 
@@ -216,6 +216,9 @@ function TourDetail() {
       </section>
 
       <TourViews views={views} />
+
+      {/* The route the itinerary below describes, read off it stop by stop */}
+      <TourWay itinerary={tour.itinerary} views={views} />
 
       {/* Itinerary */}
       <section className="section-y bg-surface">

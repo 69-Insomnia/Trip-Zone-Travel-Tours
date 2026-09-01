@@ -13,7 +13,9 @@
     "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
     "db:migrate": "node scripts/db/migrate.mjs",
     "db:seed": "node --import ./scripts/db/register-ts.mjs scripts/db/seed.mjs",
-    "db:admin": "node scripts/db/create-admin.mjs"
+    "db:sync-tour-views": "node --import ./scripts/db/register-ts.mjs scripts/db/sync-tour-views.mjs",
+    "db:admin": "node scripts/db/create-admin.mjs",
+    "media:view-photos": "node --import ./scripts/db/register-ts.mjs scripts/media/fetch-view-photos.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

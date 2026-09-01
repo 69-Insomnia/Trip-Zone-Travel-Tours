@@ -9,6 +9,7 @@ import { CollectionEditor, type Collection } from "@/components/admin/Collection
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type AdminRow } from "@/data/admin";
 import { asText } from "@/lib/admin-fields";
+import { mediaLabel } from "@/lib/media-upload";
 
 export const Route = createFileRoute("/admin/media")({
   component: AdminMediaPage,
@@ -24,7 +25,7 @@ const videos: Collection = {
   singular: "film",
   labelOf: (row) => asText(row["title"]),
   previewPath: () => "/",
-  metaOf: (row) => asText(row["src"]),
+  metaOf: (row) => mediaLabel(asText(row["src"])),
   fields: [
     { name: "title", kind: "text", label: "Title" },
     {
@@ -35,10 +36,9 @@ const videos: Collection = {
     },
     {
       name: "src",
-      kind: "text",
+      kind: "video",
       label: "Video file",
-      placeholder: "/Muktinath Tour.MP4",
-      help: "A file in the public folder, or a full URL.",
+      help: "Choose the film on this computer and it is uploaded for you. Films added before uploading existed keep playing until they are replaced.",
     },
     { name: "poster_src", kind: "image", label: "Poster image" },
     { name: "poster_alt", kind: "text", label: "Poster description" },
@@ -62,6 +62,8 @@ const videos: Collection = {
     sort_order: 99,
     published: true,
   }),
+  validate: (draft) =>
+    asText(draft["src"]).trim() === "" ? "Upload a video file before saving." : null,
 };
 
 const photos: Collection = {
@@ -75,7 +77,7 @@ const photos: Collection = {
   singular: "photograph",
   labelOf: (row) => asText(row["key"]),
   previewPath: () => "/gallery",
-  metaOf: (row) => asText(row["src"]),
+  metaOf: (row) => mediaLabel(asText(row["src"])),
   fields: [
     {
       name: "key",
@@ -95,6 +97,8 @@ const photos: Collection = {
     { name: "credit", kind: "text", label: "Credit" },
   ],
   blank: (): AdminRow => ({ key: "", src: "", alt: "", position: null, credit: null }),
+  validate: (draft) =>
+    asText(draft["src"]).trim() === "" ? "Upload a photograph before saving." : null,
   beforeSave: (draft) => {
     const position = asText(draft["position"]).trim();
     const credit = asText(draft["credit"]).trim();

@@ -10,6 +10,9 @@ export type GalleryItem = {
   place: string;
   category: string;
   image: string;
+  imageAlt?: string;
+  credit?: string;
+  creditUrl?: string;
   /** Optional Tailwind span classes for the masonry layout. */
   size?: string;
 };

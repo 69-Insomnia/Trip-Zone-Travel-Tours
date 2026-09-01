@@ -85,7 +85,9 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
             poster={current.posterSrc}
             title={current.title}
           >
-            <source src={current.src} type="video/mp4" />
+            {/* No `type` attribute: a film uploaded from /admin may be MP4, MOV
+                or WebM, so let the browser decide from what the server sends. */}
+            <source src={current.src} />
             Your browser does not support HTML video.
           </video>
           {docked ? (

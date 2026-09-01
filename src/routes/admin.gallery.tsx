@@ -16,7 +16,8 @@ const collection: Collection = {
   select: "id, title, place, category, image, size_class, sort_order, published",
   order: { column: "sort_order", ascending: true },
   title: "Gallery",
-  description: "The photo wall on /gallery. The first photo is also its page banner.",
+  description:
+    "The main photo wall on /gallery. The first photo is also its page banner; viewpoint photos from every published tour are added automatically and are managed under Tours.",
   singular: "photo",
   labelOf: (row) => asText(row["title"]),
   previewPath: () => "/gallery",

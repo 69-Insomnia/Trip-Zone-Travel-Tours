@@ -16,6 +16,8 @@ import { allPhotos, photoCredit } from "../../src/data/photos.ts";
 import { videos } from "../../src/data/videos.ts";
 import { galleryItems } from "../../src/data/gallery.ts";
 import { site } from "../../src/data/site.ts";
+import { getTourViews, tourViewCopy } from "../../src/data/tour-views.ts";
+import { tourWayCopy } from "../../src/data/tour-way.ts";
 
 const sql = connect();
 
@@ -26,13 +28,31 @@ try {
   await sql.begin(async (tx) => {
     // ---------------------------------------------------------- site settings
     await tx`
-      insert into site_settings (id, name, short_name, tagline, address, phones, socials, whatsapp_message)
+      insert into site_settings (id, name, short_name, tagline, address, phones, socials, whatsapp_message,
+                                 views_eyebrow, views_title, views_subtitle, views_footnote,
+                                 views_elevation_label, views_mountain_label, views_note_label, views_note_text,
+                                 way_eyebrow, way_title, way_subtitle, way_footnote,
+                                 way_day_label, way_high_point_label)
       values (1, ${site.name}, ${site.shortName}, ${site.tagline}, ${site.address},
-              ${sql.array([...site.phones])}, ${sql.json([...site.socials])}, ${waMessage})
+              ${sql.array([...site.phones])}, ${sql.json([...site.socials])}, ${waMessage},
+              ${tourViewCopy.eyebrow}, ${tourViewCopy.title}, ${tourViewCopy.subtitle},
+              ${tourViewCopy.footnote}, ${tourViewCopy.elevationLabel}, ${tourViewCopy.mountainLabel},
+              ${tourViewCopy.noteLabel}, ${tourViewCopy.noteText},
+              ${tourWayCopy.eyebrow}, ${tourWayCopy.title}, ${tourWayCopy.subtitle},
+              ${tourWayCopy.footnote}, ${tourWayCopy.dayLabel}, ${tourWayCopy.highPointLabel})
       on conflict (id) do update set
         name = excluded.name, short_name = excluded.short_name, tagline = excluded.tagline,
         address = excluded.address, phones = excluded.phones, socials = excluded.socials,
-        whatsapp_message = excluded.whatsapp_message
+        whatsapp_message = excluded.whatsapp_message,
+        views_eyebrow = excluded.views_eyebrow, views_title = excluded.views_title,
+        views_subtitle = excluded.views_subtitle, views_footnote = excluded.views_footnote,
+        views_elevation_label = excluded.views_elevation_label,
+        views_mountain_label = excluded.views_mountain_label,
+        views_note_label = excluded.views_note_label, views_note_text = excluded.views_note_text,
+        way_eyebrow = excluded.way_eyebrow, way_title = excluded.way_title,
+        way_subtitle = excluded.way_subtitle, way_footnote = excluded.way_footnote,
+        way_day_label = excluded.way_day_label,
+        way_high_point_label = excluded.way_high_point_label
     `;
 
     // ----------------------------------------------------------------- photos
@@ -46,7 +66,7 @@ try {
       `;
     }
 
-    // ------------------------------------------------- tours + prices + days
+    // ------------------------------------------- tours + prices + days + views
     for (const [i, tour] of tours.entries()) {
       const [row] = await tx`
         insert into tours (slug, name, region, duration, nights, days, type, summary, overview,
@@ -79,6 +99,18 @@ try {
         await tx`
           insert into tour_itinerary (tour_id, day, route)
           values (${row.id}, ${day.day}, ${day.route})
+        `;
+      }
+
+      await tx`delete from tour_views where tour_id = ${row.id}`;
+      for (const [j, v] of getTourViews(tour.slug).entries()) {
+        await tx`
+          insert into tour_views (tour_id, title, place, elevation, mountain_name,
+                                  mountain_elevation, description, image, image_alt,
+                                  photo_note, credit, credit_url, sort_order)
+          values (${row.id}, ${v.title}, ${v.place}, ${v.elevation}, ${v.mountainName},
+                  ${v.mountainElevation}, ${v.description}, ${v.image}, ${v.imageAlt},
+                  ${v.photoNote ?? ""}, ${v.credit ?? ""}, ${v.creditUrl ?? ""}, ${j})
         `;
       }
     }
@@ -157,6 +189,7 @@ try {
     select 'tours' as t, count(*) from tours
     union all select 'tour_prices', count(*) from tour_prices
     union all select 'tour_itinerary', count(*) from tour_itinerary
+    union all select 'tour_views', count(*) from tour_views
     union all select 'destinations', count(*) from destinations
     union all select 'photos', count(*) from photos
     union all select 'videos', count(*) from videos

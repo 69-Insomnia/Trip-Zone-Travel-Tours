@@ -1,4 +1,5 @@
 import { photo } from "./photos";
+import type { TourView } from "./tour-views";
 
 /** Each destination uses a photograph of that actual place — see src/data/photos.ts. */
 const manangImg = photo("manang").src;
@@ -47,6 +48,11 @@ export type Tour = {
   included: string[];
   excluded: string[];
   travelNotes?: string[];
+  /**
+   * Photographs for the "Places & mountain views" section. Only loaded for the
+   * tour detail page — the cards on the list pages do not need them.
+   */
+  views?: TourView[];
 };
 
 export const tours: Tour[] = [

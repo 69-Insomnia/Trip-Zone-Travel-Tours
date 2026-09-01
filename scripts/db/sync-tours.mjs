@@ -7,6 +7,7 @@
 
 import { connect } from "./env.mjs";
 import { tours } from "../../src/data/tours.ts";
+import { getTourViews } from "../../src/data/tour-views.ts";
 
 const requested = new Set(process.argv.slice(2));
 if (requested.size === 0) {
@@ -59,6 +60,18 @@ try {
           values (${row.id}, ${day.day}, ${day.route})
         `;
       }
+
+      await tx`delete from tour_views where tour_id = ${row.id}`;
+      for (const [viewOrder, v] of getTourViews(tour.slug).entries()) {
+        await tx`
+          insert into tour_views (tour_id, title, place, elevation, mountain_name,
+                                  mountain_elevation, description, image, image_alt,
+                                  photo_note, credit, credit_url, sort_order)
+          values (${row.id}, ${v.title}, ${v.place}, ${v.elevation}, ${v.mountainName},
+                  ${v.mountainElevation}, ${v.description}, ${v.image}, ${v.imageAlt},
+                  ${v.photoNote ?? ""}, ${v.credit ?? ""}, ${v.creditUrl ?? ""}, ${viewOrder})
+        `;
+      }
     }
   });
 
@@ -66,10 +79,12 @@ try {
     select t.slug, t.duration,
            count(distinct p.id)::int as prices,
            count(distinct i.id)::int as itinerary_days,
+           count(distinct v.id)::int as views,
            cardinality(t.travel_notes)::int as travel_notes
     from tours t
     left join tour_prices p on p.tour_id = t.id
     left join tour_itinerary i on i.tour_id = t.id
+    left join tour_views v on v.tour_id = t.id
     where t.slug = any(${sql.array([...requested])})
     group by t.id
     order by t.sort_order
@@ -78,7 +93,7 @@ try {
   console.log(`Synced ${selected.length} tour package${selected.length === 1 ? "" : "s"}:`);
   for (const tour of verified) {
     console.log(
-      `  ${tour.slug}: ${tour.duration}, ${tour.prices} price option(s), ${tour.itinerary_days} day(s), ${tour.travel_notes} note(s)`,
+      `  ${tour.slug}: ${tour.duration}, ${tour.prices} price option(s), ${tour.itinerary_days} day(s), ${tour.views} view(s), ${tour.travel_notes} note(s)`,
     );
   }
 } catch (error) {

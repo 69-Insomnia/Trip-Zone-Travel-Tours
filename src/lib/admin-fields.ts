@@ -23,17 +23,40 @@ export type Field = {
   | { kind: "switch" }
   | { kind: "select"; options: readonly string[] }
   | { kind: "image" }
+  | { kind: "video" }
   | { kind: "stringList"; placeholder?: string }
   | { kind: "linkList" }
   | { kind: "sections" }
   | { kind: "prices" }
   | { kind: "itinerary" }
+  | { kind: "views" }
 );
 
 export type Link = { label: string; url: string };
 export type Section = { heading: string; paragraphs: string[]; bullets?: string[] };
 export type Price = { transport: string; price: number; note: string | null };
 export type Day = { day: number; route: string };
+
+/** A photograph in the "Places & mountain views" section of a tour page. */
+export type View = {
+  title: string;
+  place: string;
+  elevation: string;
+  mountainName: string;
+  mountainElevation: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  /** Blank means "use the shared photo note from /admin/settings". */
+  photoNote: string;
+  /**
+   * Photographer and licence, filled in by scripts/media/fetch-view-photos.mjs
+   * for photographs taken from Wikimedia Commons. Blank for an uploaded photo.
+   */
+  credit: string;
+  /** Page the credit links to. */
+  creditUrl: string;
+};
 
 /** `jsonb` and `text[]` columns can come back as a JSON string; accept both. */
 function parsed(value: unknown): unknown {
@@ -113,6 +136,37 @@ export function asDays(value: unknown): Day[] {
       return { day: asNumber(entry["day"]), route: asText(entry["route"]) };
     })
     .sort((a, b) => a.day - b.day);
+}
+
+/**
+ * Reads a tour's view rows. Both the snake_case column names and the camelCase
+ * names this function emits are accepted, so re-reading a draft the editor has
+ * already touched keeps the renamed columns instead of blanking them.
+ */
+export function asViews(value: unknown): View[] {
+  const raw = Array.isArray(value) ? value : parsed(value);
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      const entry = (item ?? {}) as Record<string, unknown>;
+      const either = (camel: string, snake: string) => asText(entry[camel] ?? entry[snake]);
+      return {
+        title: asText(entry["title"]),
+        place: asText(entry["place"]),
+        elevation: asText(entry["elevation"]),
+        mountainName: either("mountainName", "mountain_name"),
+        mountainElevation: either("mountainElevation", "mountain_elevation"),
+        description: asText(entry["description"]),
+        image: asText(entry["image"]),
+        imageAlt: either("imageAlt", "image_alt"),
+        photoNote: either("photoNote", "photo_note"),
+        credit: asText(entry["credit"]),
+        creditUrl: either("creditUrl", "credit_url"),
+        sort: asNumber(entry["sort_order"]),
+      };
+    })
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ sort, ...view }) => view);
 }
 
 /** Moves an item without mutating the original array. */

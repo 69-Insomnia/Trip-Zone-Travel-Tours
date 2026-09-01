@@ -1,11 +1,12 @@
 /**
- * /admin/tours — packages, their prices and their day-by-day itinerary.
+ * /admin/tours — packages, their prices, their day-by-day itinerary and the
+ * photographs in their "Places & mountain views" section.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
 import { CollectionEditor, type Collection } from "@/components/admin/CollectionEditor";
 import { replaceTourChildren, type AdminRow } from "@/data/admin";
-import { asDays, asPrices, asText, slugify } from "@/lib/admin-fields";
+import { asDays, asPrices, asText, asViews, slugify } from "@/lib/admin-fields";
 
 export const Route = createFileRoute("/admin/tours")({
   component: AdminToursPage,
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/admin/tours")({
 const collection: Collection = {
   table: "tours",
   select:
-    "id, slug, name, region, duration, nights, days, type, summary, overview, image, highlights, included, excluded, travel_notes, sort_order, published, tour_prices(transport, price, note, sort_order), tour_itinerary(day, route)",
+    "id, slug, name, region, duration, nights, days, type, summary, overview, image, highlights, included, excluded, travel_notes, sort_order, published, tour_prices(transport, price, note, sort_order), tour_itinerary(day, route), tour_views(title, place, elevation, mountain_name, mountain_elevation, description, image, image_alt, photo_note, credit, credit_url, sort_order)",
   order: { column: "sort_order", ascending: true },
   title: "Tours",
   description:
@@ -91,6 +92,7 @@ const collection: Collection = {
       kind: "itinerary",
       label: "Itinerary",
       section: "Pricing & itinerary",
+      help: "Writing a day as its stops — “Kathmandu → Dharapani → Manang” — also draws the route section on this tour's page. A day written as a sentence hides that section for the whole tour.",
     },
     { name: "included", kind: "stringList", label: "What's included", section: "Package details" },
     {
@@ -100,6 +102,13 @@ const collection: Collection = {
       section: "Package details",
     },
     { name: "travel_notes", kind: "stringList", label: "Travel notes", section: "Package details" },
+    {
+      name: "tour_views",
+      kind: "views",
+      label: "View photographs",
+      section: "Places & mountain views",
+      help: "The photo grid on this tour's page. Remove every view to hide the section on this tour. The heading and labels around the grid are in Settings.",
+    },
     {
       name: "sort_order",
       kind: "number",
@@ -128,13 +137,19 @@ const collection: Collection = {
     published: true,
     tour_prices: [],
     tour_itinerary: [],
+    tour_views: [],
   }),
   beforeSave: (draft) => {
     const slug = asText(draft["slug"]).trim();
     return slug ? draft : { ...draft, slug: slugify(asText(draft["name"])) };
   },
   afterSave: async (id, draft) =>
-    replaceTourChildren(id, asPrices(draft["tour_prices"]), asDays(draft["tour_itinerary"])),
+    replaceTourChildren(
+      id,
+      asPrices(draft["tour_prices"]),
+      asDays(draft["tour_itinerary"]),
+      asViews(draft["tour_views"]),
+    ),
 };
 
 function AdminToursPage() {

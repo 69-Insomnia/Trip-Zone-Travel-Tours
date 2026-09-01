@@ -2,7 +2,8 @@
  * /admin/settings — the company details every page shows.
  *
  * One row, so no list: this is the header, the footer, the contact page and
- * every WhatsApp and call link on the site.
+ * every WhatsApp and call link on the site, plus the wording of the
+ * "Places & mountain views" section shared by every tour page.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -17,7 +18,8 @@ export const Route = createFileRoute("/admin/settings")({
 
 const collection: Collection = {
   table: "site_settings",
-  select: "id, name, short_name, tagline, address, phones, socials, whatsapp_message",
+  select:
+    "id, name, short_name, tagline, address, phones, socials, whatsapp_message, views_eyebrow, views_title, views_subtitle, views_footnote, views_elevation_label, views_mountain_label, views_note_label, views_note_text, way_eyebrow, way_title, way_subtitle, way_footnote, way_day_label, way_high_point_label",
   singleton: true,
   title: "Site settings",
   description:
@@ -58,6 +60,113 @@ const collection: Collection = {
       section: "Messaging",
       rows: 3,
       help: "Pre-filled when a visitor taps the floating WhatsApp button.",
+    },
+    {
+      name: "views_eyebrow",
+      kind: "text",
+      label: "Small label above the heading",
+      section: "Places & mountain views",
+      placeholder: "Places & mountain views",
+      help: "Leave empty to hide it.",
+    },
+    {
+      name: "views_title",
+      kind: "text",
+      label: "Heading",
+      section: "Places & mountain views",
+      placeholder: "See what you will experience",
+    },
+    {
+      name: "views_subtitle",
+      kind: "textarea",
+      label: "Introduction",
+      section: "Places & mountain views",
+      rows: 3,
+      help: "Shown under the heading. Leave empty to hide it.",
+    },
+    {
+      name: "views_footnote",
+      kind: "textarea",
+      label: "Small print under the photos",
+      section: "Places & mountain views",
+      rows: 3,
+      help: "Leave empty to hide it.",
+    },
+    {
+      name: "views_elevation_label",
+      kind: "text",
+      label: "Label — viewpoint elevation",
+      section: "Places & mountain views",
+      placeholder: "Viewpoint elevation",
+      help: "Shown beside a photo's details when a visitor opens it.",
+    },
+    {
+      name: "views_mountain_label",
+      kind: "text",
+      label: "Label — mountain / ridge",
+      section: "Places & mountain views",
+      placeholder: "Mountain / ridge",
+    },
+    {
+      name: "views_note_label",
+      kind: "text",
+      label: "Label — photo note",
+      section: "Places & mountain views",
+      placeholder: "Photo note",
+    },
+    {
+      name: "views_note_text",
+      kind: "text",
+      label: "Shared photo note",
+      section: "Places & mountain views",
+      placeholder: "View conditions vary by season and weather.",
+      help: "Used for every photo that has no note of its own. Leave empty to hide the note.",
+    },
+    {
+      name: "way_eyebrow",
+      kind: "text",
+      label: "Small label above the heading",
+      section: "The way",
+      placeholder: "The way",
+      help: "Leave empty to hide it.",
+    },
+    {
+      name: "way_title",
+      kind: "text",
+      label: "Heading",
+      section: "The way",
+      placeholder: "Follow the route, stop by stop",
+    },
+    {
+      name: "way_subtitle",
+      kind: "textarea",
+      label: "Introduction",
+      section: "The way",
+      rows: 3,
+      help: "Shown under the heading. Leave empty to hide it.",
+    },
+    {
+      name: "way_footnote",
+      kind: "textarea",
+      label: "Small print under the route",
+      section: "The way",
+      rows: 3,
+      help: "Leave empty to hide it.",
+    },
+    {
+      name: "way_day_label",
+      kind: "text",
+      label: "Label — day",
+      section: "The way",
+      placeholder: "Day",
+      help: "Marks where each day of the itinerary begins, as in “Day 3”.",
+    },
+    {
+      name: "way_high_point_label",
+      kind: "text",
+      label: "Label — highest point",
+      section: "The way",
+      placeholder: "Highest point",
     },
   ],
   beforeSave: (draft) => ({

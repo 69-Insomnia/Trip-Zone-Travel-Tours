@@ -25,6 +25,14 @@ import { blogs as fallbackBlogs, type BlogPost, type BlogSection } from "./blogs
 import { galleryItems as fallbackGallery, type GalleryItem } from "./gallery";
 import { videoSource, videos as fallbackVideos, type Video } from "./videos";
 import { allPhotos as fallbackPhotos, type Photo, type PhotoKey } from "./photos";
+import {
+  getTourViews,
+  tourViewCopy,
+  tourViews,
+  type TourView,
+  type TourViewCopy,
+} from "./tour-views";
+import { tourWayCopy, type TourWayCopy } from "./tour-way";
 import { site as fallbackSite } from "./site";
 import { isValidExternalUrl, normalizeExternalUrl } from "@/lib/external-url";
 
@@ -38,6 +46,10 @@ export type SiteSettings = {
   primaryPhone: string;
   socials: { label: string; url: string }[];
   whatsappMessage: string;
+  /** Wording of the "Places & mountain views" section on every tour page. */
+  viewsSection: TourViewCopy;
+  /** Wording of the route section on every tour page. */
+  waySection: TourWayCopy;
 };
 
 export type Faq = { q: string; a: string };
@@ -71,6 +83,8 @@ export const fallbackSiteSettings: SiteSettings = {
   primaryPhone: fallbackSite.phones[0],
   socials: [...fallbackSite.socials],
   whatsappMessage: FALLBACK_WHATSAPP_MESSAGE,
+  viewsSection: tourViewCopy,
+  waySection: tourWayCopy,
 };
 
 /** Runs a query, falling back to the bundled snapshot on any failure. */
@@ -110,6 +124,21 @@ function asArray<T>(value: unknown): T[] {
 
 // ----------------------------------------------------------------- row mappers
 
+type TourViewRow = {
+  title: string;
+  place: string;
+  elevation: string;
+  mountain_name: string;
+  mountain_elevation: string;
+  description: string;
+  image: string;
+  image_alt: string;
+  photo_note: string;
+  credit: string;
+  credit_url: string;
+  sort_order: number;
+};
+
 type TourRow = {
   slug: string;
   name: string;
@@ -127,7 +156,27 @@ type TourRow = {
   travel_notes: string[] | null;
   tour_prices: { transport: string; price: number; note: string | null; sort_order: number }[];
   tour_itinerary: { day: number; route: string }[];
+  /** Only present on the detail select. */
+  tour_views?: TourViewRow[];
 };
+
+function mapTourView(row: TourViewRow): TourView {
+  return {
+    title: row.title,
+    place: row.place,
+    elevation: row.elevation,
+    mountainName: row.mountain_name,
+    mountainElevation: row.mountain_elevation,
+    description: row.description,
+    image: row.image,
+    imageAlt: row.image_alt,
+    ...(row.photo_note ? { photoNote: row.photo_note } : {}),
+    // Most of these photographs are CC BY-SA, which the licence requires us to
+    // credit wherever the photograph is shown.
+    ...(row.credit ? { credit: row.credit } : {}),
+    ...(row.credit_url ? { creditUrl: row.credit_url } : {}),
+  };
+}
 
 function mapTour(row: TourRow): Tour {
   const prices: PriceOption[] = [...row.tour_prices]
@@ -141,6 +190,11 @@ function mapTour(row: TourRow): Tour {
   const itinerary: ItineraryDay[] = [...row.tour_itinerary]
     .sort((a, b) => a.day - b.day)
     .map((d) => ({ day: d.day, route: d.route }));
+
+  // Only the detail select asks for the view photographs.
+  const views = row.tour_views
+    ? [...row.tour_views].sort((a, b) => a.sort_order - b.sort_order).map(mapTourView)
+    : undefined;
 
   return {
     slug: row.slug,
@@ -159,11 +213,19 @@ function mapTour(row: TourRow): Tour {
     included: row.included ?? [],
     excluded: row.excluded ?? [],
     travelNotes: row.travel_notes ?? [],
+    ...(views ? { views } : {}),
   };
 }
 
 const TOUR_SELECT =
   "slug, name, region, duration, nights, days, type, summary, overview, image, highlights, included, excluded, travel_notes, tour_prices(transport, price, note, sort_order), tour_itinerary(day, route)";
+
+/**
+ * The detail page also needs the view photographs. They are deliberately left
+ * out of `TOUR_SELECT` so the list pages — and the shared content every page
+ * loads — do not carry ten photo records per tour.
+ */
+const TOUR_DETAIL_SELECT = `${TOUR_SELECT}, tour_views(title, place, elevation, mountain_name, mountain_elevation, description, image, image_alt, photo_note, credit, credit_url, sort_order)`;
 
 type BlogRow = {
   slug: string;
@@ -217,13 +279,60 @@ type SiteSettingsRow = {
   phones: string[] | null;
   socials: { label: string; url: string }[] | null;
   whatsapp_message: string | null;
+  views_eyebrow: string | null;
+  views_title: string | null;
+  views_subtitle: string | null;
+  views_footnote: string | null;
+  views_elevation_label: string | null;
+  views_mountain_label: string | null;
+  views_note_label: string | null;
+  views_note_text: string | null;
+  way_eyebrow: string | null;
+  way_title: string | null;
+  way_subtitle: string | null;
+  way_footnote: string | null;
+  way_day_label: string | null;
+  way_high_point_label: string | null;
 };
+
+const SITE_SETTINGS_SELECT =
+  "name, short_name, tagline, address, phones, socials, whatsapp_message, views_eyebrow, views_title, views_subtitle, views_footnote, views_elevation_label, views_mountain_label, views_note_label, views_note_text, way_eyebrow, way_title, way_subtitle, way_footnote, way_day_label, way_high_point_label";
+
+/**
+ * The heading and the three detail labels fall back when blank — the section
+ * cannot render without them. The eyebrow, intro, small print and shared note
+ * are taken as stored, so clearing one in /admin hides that line.
+ */
+function mapViewsSection(row: SiteSettingsRow): TourViewCopy {
+  return {
+    eyebrow: row.views_eyebrow ?? tourViewCopy.eyebrow,
+    title: row.views_title || tourViewCopy.title,
+    subtitle: row.views_subtitle ?? tourViewCopy.subtitle,
+    footnote: row.views_footnote ?? tourViewCopy.footnote,
+    elevationLabel: row.views_elevation_label || tourViewCopy.elevationLabel,
+    mountainLabel: row.views_mountain_label || tourViewCopy.mountainLabel,
+    noteLabel: row.views_note_label || tourViewCopy.noteLabel,
+    noteText: row.views_note_text ?? tourViewCopy.noteText,
+  };
+}
+
+/** Same rule for the route section: headings and labels fall back, prose does not. */
+function mapWaySection(row: SiteSettingsRow): TourWayCopy {
+  return {
+    eyebrow: row.way_eyebrow ?? tourWayCopy.eyebrow,
+    title: row.way_title || tourWayCopy.title,
+    subtitle: row.way_subtitle ?? tourWayCopy.subtitle,
+    footnote: row.way_footnote ?? tourWayCopy.footnote,
+    dayLabel: row.way_day_label || tourWayCopy.dayLabel,
+    highPointLabel: row.way_high_point_label || tourWayCopy.highPointLabel,
+  };
+}
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {
   return withFallback("Site settings", fallbackSiteSettings, async () => {
     const { data, error } = await supabase!
       .from("site_settings")
-      .select("name, short_name, tagline, address, phones, socials, whatsapp_message")
+      .select(SITE_SETTINGS_SELECT)
       .eq("id", 1)
       .single();
     if (error) throw new Error(error.message);
@@ -245,6 +354,8 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
         }))
         .filter((social) => social.label && isValidExternalUrl(social.url)),
       whatsappMessage: row.whatsapp_message || FALLBACK_WHATSAPP_MESSAGE,
+      viewsSection: mapViewsSection(row),
+      waySection: mapWaySection(row),
     };
   });
 }
@@ -259,11 +370,15 @@ export async function fetchTours(): Promise<Tour[]> {
 }
 
 export async function fetchTour(slug: string): Promise<Tour | undefined> {
-  const fallback = fallbackTours.find((t) => t.slug === slug);
+  const bundled = fallbackTours.find((t) => t.slug === slug);
+  // The bundled tour carries no views, so the snapshot supplies them: an
+  // unreachable database still renders the section. A reachable one is the only
+  // source of truth, so deleting a tour's views in /admin hides the section.
+  const fallback = bundled ? { ...bundled, views: getTourViews(slug) } : undefined;
   return withFallback(`Tour "${slug}"`, fallback, async () => {
     const { data, error } = await supabase!
       .from("tours")
-      .select(TOUR_SELECT)
+      .select(TOUR_DETAIL_SELECT)
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -327,22 +442,64 @@ export async function fetchPhotos(): Promise<PhotoMap> {
   });
 }
 
+const fallbackViewGallery: GalleryItem[] = Object.values(tourViews).flatMap((views) =>
+  views.map((view) => ({
+    title: view.title,
+    place: view.place,
+    category: view.mountainName || "Tour view",
+    image: view.image,
+    imageAlt: view.imageAlt,
+    ...(view.credit ? { credit: view.credit } : {}),
+    ...(view.creditUrl ? { creditUrl: view.creditUrl } : {}),
+  })),
+);
+
+function mergeGalleryItems(...groups: GalleryItem[][]): GalleryItem[] {
+  const seen = new Set<string>();
+  return groups.flat().filter((item) => {
+    if (!item.image || seen.has(item.image)) return false;
+    seen.add(item.image);
+    return true;
+  });
+}
+
 export async function fetchGallery(): Promise<GalleryItem[]> {
-  return withFallback("Gallery", fallbackGallery, async () => {
-    const rows = unwrap(
-      await supabase!
+  const fallback = mergeGalleryItems(fallbackGallery, fallbackViewGallery);
+  return withFallback("Gallery", fallback, async () => {
+    const [galleryResult, viewResult] = await Promise.all([
+      supabase!
         .from("gallery_items")
         .select("title, place, category, image, size_class")
         .order("sort_order", { ascending: true }),
-    );
-    if (rows.length === 0) return fallbackGallery;
-    return rows.map((row) => ({
+      supabase!
+        .from("tour_views")
+        .select("title, place, mountain_name, image, image_alt, credit, credit_url, sort_order")
+        .order("sort_order", { ascending: true }),
+    ]);
+
+    const galleryRows = unwrap(galleryResult);
+    const viewRows = unwrap(viewResult);
+    const gallery = galleryRows.map((row) => ({
       title: row.title,
       place: row.place,
       category: row.category,
       image: row.image,
       ...(row.size_class ? { size: row.size_class } : {}),
     }));
+    const viewGallery = viewRows.map((row) => ({
+      title: row.title,
+      place: row.place,
+      category: row.mountain_name || "Tour view",
+      image: row.image,
+      imageAlt: row.image_alt,
+      ...(row.credit ? { credit: row.credit } : {}),
+      ...(row.credit_url ? { creditUrl: row.credit_url } : {}),
+    }));
+
+    return mergeGalleryItems(
+      gallery.length > 0 ? gallery : fallbackGallery,
+      viewGallery.length > 0 ? viewGallery : fallbackViewGallery,
+    );
   });
 }
 
@@ -427,6 +584,13 @@ export type InquiryInput = {
   travelers?: number;
   message: string;
   tourSlug?: string;
+  travelTime?: string;
+  pickupLocation?: string;
+  vehicleName?: string;
+  vehicleImage?: string;
+  fareLabel?: string;
+  quotedPrice?: number;
+  source?: "website" | "vehicle-booking";
 };
 
 /**
@@ -435,7 +599,7 @@ export type InquiryInput = {
  */
 export async function submitInquiry(input: InquiryInput): Promise<void> {
   if (!supabase) throw new Error("The inquiry database is not configured.");
-  const { error } = await supabase.from("inquiries").insert({
+  const payload = {
     name: input.name.trim(),
     phone: input.phone.trim(),
     email: input.email?.trim() || null,
@@ -444,8 +608,46 @@ export async function submitInquiry(input: InquiryInput): Promise<void> {
     travelers: input.travelers ?? null,
     message: input.message.trim(),
     tour_slug: input.tourSlug || null,
+    travel_time: input.travelTime || null,
+    pickup_location: input.pickupLocation?.trim() || null,
+    vehicle_name: input.vehicleName?.trim() || null,
+    vehicle_image: input.vehicleImage || null,
+    fare_label: input.fareLabel?.trim() || null,
+    quoted_price: input.quotedPrice ?? null,
     status: "new",
-    source: "website",
-  });
-  if (error) throw new Error(error.message);
+    source: input.source ?? "website",
+  };
+  const { error } = await supabase.from("inquiries").insert(payload);
+  if (!error) return;
+
+  // A deployment can receive bookings before the additive SQL migration has
+  // been applied. Preserve the lead in the original schema as a temporary
+  // fallback; the structured fields will be used automatically once migrated.
+  if (input.source === "vehicle-booking") {
+    const legacyMessage = [
+      input.message.trim(),
+      input.vehicleImage ? `Vehicle photo: ${input.vehicleImage}` : "",
+      input.vehicleName ? `Vehicle: ${input.vehicleName}` : "",
+      input.fareLabel ? `Fare: ${input.fareLabel}` : "",
+      input.quotedPrice !== undefined ? `Quoted price: NPR ${input.quotedPrice}` : "",
+      input.travelTime ? `Time: ${input.travelTime}` : "",
+      input.pickupLocation ? `Pickup: ${input.pickupLocation}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const legacy = await supabase.from("inquiries").insert({
+      name: input.name.trim(),
+      phone: input.phone.trim(),
+      email: input.email?.trim() || null,
+      destination: input.destination || null,
+      travel_date: input.travelDate || null,
+      travelers: input.travelers ?? null,
+      message: legacyMessage.slice(0, 4000),
+      tour_slug: input.tourSlug || null,
+      status: "new",
+      source: "website",
+    });
+    if (!legacy.error) return;
+  }
+  throw new Error(error.message);
 }

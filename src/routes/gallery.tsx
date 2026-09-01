@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowUpRight, Camera, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { BookingCTA } from "@/components/BookingCTA";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
@@ -24,13 +24,27 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const gallery = Route.useLoaderData();
-  const [selected, setSelected] = useState<GalleryItem | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const selected = selectedIndex === null ? null : (gallery[selectedIndex] ?? null);
   const heroImage = gallery[0]?.image ?? "/photos/hero-annapurna.jpg";
+
+  const move = useCallback(
+    (direction: -1 | 1) => {
+      setSelectedIndex((current) => {
+        if (current === null || gallery.length < 2) return current;
+        return (current + direction + gallery.length) % gallery.length;
+      });
+    },
+    [gallery.length],
+  );
 
   useEffect(() => {
     if (!selected) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelected(null);
+      if (event.key === "Escape") setSelectedIndex(null);
+      if (event.key === "ArrowLeft") move(-1);
+      if (event.key === "ArrowRight") move(1);
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
@@ -38,7 +52,7 @@ function GalleryPage() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [selected]);
+  }, [move, selected]);
 
   return (
     <>
@@ -59,11 +73,11 @@ function GalleryPage() {
             subtitle="Browse a visual diary from the destinations and routes covered by Trip Zone Travel & Tours."
           />
           <div className="mt-12 grid auto-rows-[180px] grid-cols-1 gap-4 sm:grid-cols-2 md:auto-rows-[210px] lg:grid-cols-4">
-            {gallery.map((item) => (
+            {gallery.map((item, index) => (
               <button
-                key={item.title}
+                key={`${item.image}-${index}`}
                 type="button"
-                onClick={() => setSelected(item)}
+                onClick={() => setSelectedIndex(index)}
                 className={cn(
                   "group relative overflow-hidden rounded-xl bg-ink text-left shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   item.size,
@@ -102,13 +116,26 @@ function GalleryPage() {
           role="dialog"
           aria-modal="true"
           aria-label={selected.title}
-          onClick={() => setSelected(null)}
+          onClick={() => setSelectedIndex(null)}
         >
-          <div className="relative w-full max-w-5xl" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="relative w-full max-w-5xl"
+            onClick={(event) => event.stopPropagation()}
+            onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
+            onTouchEnd={(event) => {
+              const endX = event.changedTouches[0]?.clientX;
+              if (touchStartX !== null && endX !== undefined) {
+                const distance = endX - touchStartX;
+                if (Math.abs(distance) >= 50) move(distance > 0 ? -1 : 1);
+              }
+              setTouchStartX(null);
+            }}
+          >
             <img
+              key={selected.image}
               src={selected.image}
-              alt={`${selected.title}, ${selected.place}`}
-              className="max-h-[82vh] w-full rounded-xl object-contain"
+              alt={selected.imageAlt ?? `${selected.title}, ${selected.place}`}
+              className="max-h-[82vh] w-full animate-in rounded-xl object-contain fade-in-0 duration-300"
               width="1600"
               height="1200"
             />
@@ -118,10 +145,52 @@ function GalleryPage() {
               </p>
               <h2 className="mt-1 font-display text-2xl font-extrabold">{selected.title}</h2>
               <p className="mt-1 text-sm text-white/70">{selected.place}</p>
+              {selected.credit ? (
+                <p className="mt-3 flex max-w-3xl items-start gap-2 text-xs leading-relaxed text-white/65">
+                  <Camera className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                  {selected.creditUrl ? (
+                    <a
+                      href={selected.creditUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="underline decoration-dotted underline-offset-2 hover:text-white"
+                    >
+                      {selected.credit}
+                    </a>
+                  ) : (
+                    selected.credit
+                  )}
+                </p>
+              ) : null}
             </div>
+            {gallery.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => move(-1)}
+                  className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
+                  aria-label="Previous gallery image"
+                  title="Previous image"
+                >
+                  <ChevronLeft className="size-6" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(1)}
+                  className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
+                  aria-label="Next gallery image"
+                  title="Next image"
+                >
+                  <ChevronRight className="size-6" aria-hidden="true" />
+                </button>
+                <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+                  {(selectedIndex ?? 0) + 1} / {gallery.length}
+                </span>
+              </>
+            ) : null}
             <button
               type="button"
-              onClick={() => setSelected(null)}
+              onClick={() => setSelectedIndex(null)}
               className="absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
               aria-label="Close image viewer"
               title="Close image viewer"

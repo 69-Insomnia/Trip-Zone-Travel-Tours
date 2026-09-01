@@ -1,6 +1,16 @@
-import { ArrowUpRight, MapPin, Mountain, Ruler, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowUpRight,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Mountain,
+  Ruler,
+  X,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { type TourView } from "@/data/tour-views";
+import { useSite } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import { SectionHeading } from "./SectionHeading";
 
@@ -12,12 +22,29 @@ function tileSize(index: number) {
 }
 
 export function TourViews({ views }: { views: TourView[] }) {
-  const [selected, setSelected] = useState<TourView | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const selected = selectedIndex === null ? null : (views[selectedIndex] ?? null);
+  // Every word around the grid is editable in /admin/settings.
+  const copy = useSite().viewsSection;
+  const selectedNote = selected ? selected.photoNote || copy.noteText : "";
+
+  const move = useCallback(
+    (direction: -1 | 1) => {
+      setSelectedIndex((current) => {
+        if (current === null || views.length < 2) return current;
+        return (current + direction + views.length) % views.length;
+      });
+    },
+    [views.length],
+  );
 
   useEffect(() => {
     if (!selected) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelected(null);
+      if (event.key === "Escape") setSelectedIndex(null);
+      if (event.key === "ArrowLeft") move(-1);
+      if (event.key === "ArrowRight") move(1);
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
@@ -25,7 +52,7 @@ export function TourViews({ views }: { views: TourView[] }) {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [selected]);
+  }, [move, selected]);
 
   if (!views.length) return null;
 
@@ -33,18 +60,14 @@ export function TourViews({ views }: { views: TourView[] }) {
     <>
       <section className="section-y bg-surface">
         <div className="container-page">
-          <SectionHeading
-            eyebrow="Places & mountain views"
-            title="See what you will experience"
-            subtitle="A visual route guide to the places, ridges and mountain horizons included in this package. Select any image for the full view details."
-          />
+          <SectionHeading eyebrow={copy.eyebrow} title={copy.title} subtitle={copy.subtitle} />
 
           <div className="mt-12 grid auto-rows-[180px] grid-cols-1 gap-4 sm:grid-cols-2 md:auto-rows-[210px] lg:grid-cols-4">
             {views.map((item, index) => (
               <button
-                key={`${item.place}-${item.title}`}
+                key={`${index}-${item.place}-${item.title}`}
                 type="button"
-                onClick={() => setSelected(item)}
+                onClick={() => setSelectedIndex(index)}
                 className={cn(
                   "group relative overflow-hidden rounded-xl bg-ink text-left shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   tileSize(index),
@@ -75,10 +98,9 @@ export function TourViews({ views }: { views: TourView[] }) {
             ))}
           </div>
 
-          <p className="mt-8 text-xs leading-relaxed text-muted-foreground">
-            Elevations are approximate reference values. Mountain visibility depends on season,
-            weather and the exact viewpoint on the day.
-          </p>
+          {copy.footnote ? (
+            <p className="mt-8 text-xs leading-relaxed text-muted-foreground">{copy.footnote}</p>
+          ) : null}
         </div>
       </section>
 
@@ -88,17 +110,27 @@ export function TourViews({ views }: { views: TourView[] }) {
           role="dialog"
           aria-modal="true"
           aria-label={selected.title}
-          onClick={() => setSelected(null)}
+          onClick={() => setSelectedIndex(null)}
         >
           <div
             className="relative my-6 w-full max-w-5xl overflow-hidden rounded-xl bg-card shadow-2xl"
             onClick={(event) => event.stopPropagation()}
+            onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
+            onTouchEnd={(event) => {
+              const endX = event.changedTouches[0]?.clientX;
+              if (touchStartX !== null && endX !== undefined) {
+                const distance = endX - touchStartX;
+                if (Math.abs(distance) >= 50) move(distance > 0 ? -1 : 1);
+              }
+              setTouchStartX(null);
+            }}
           >
             <div className="relative aspect-[16/9] max-h-[62vh] bg-ink">
               <img
+                key={selected.image}
                 src={selected.image}
                 alt={selected.imageAlt}
-                className="size-full object-cover"
+                className="size-full animate-in object-cover fade-in-0 duration-300"
                 width="1600"
                 height="1000"
               />
@@ -114,6 +146,31 @@ export function TourViews({ views }: { views: TourView[] }) {
                   {selected.place} <ArrowUpRight className="size-4" aria-hidden="true" />
                 </p>
               </div>
+              {views.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => move(-1)}
+                    className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
+                    aria-label="Previous viewpoint image"
+                    title="Previous image"
+                  >
+                    <ChevronLeft className="size-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(1)}
+                    className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
+                    aria-label="Next viewpoint image"
+                    title="Next image"
+                  >
+                    <ChevronRight className="size-6" aria-hidden="true" />
+                  </button>
+                  <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+                    {(selectedIndex ?? 0) + 1} / {views.length}
+                  </span>
+                </>
+              ) : null}
             </div>
 
             <div className="grid gap-6 p-6 md:grid-cols-[1.4fr_1fr] md:p-8">
@@ -125,7 +182,7 @@ export function TourViews({ views }: { views: TourView[] }) {
                   <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
                   <div>
                     <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                      Viewpoint elevation
+                      {copy.elevationLabel}
                     </dt>
                     <dd className="mt-1 font-semibold text-ink">{selected.elevation}</dd>
                   </div>
@@ -134,30 +191,58 @@ export function TourViews({ views }: { views: TourView[] }) {
                   <Mountain className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                   <div>
                     <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                      Mountain / ridge
+                      {copy.mountainLabel}
                     </dt>
                     <dd className="mt-1 font-semibold text-ink">
                       {selected.mountainName} ({selected.mountainElevation})
                     </dd>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Ruler className="mt-0.5 size-4 shrink-0 text-forest" aria-hidden="true" />
-                  <div>
-                    <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                      Photo note
-                    </dt>
-                    <dd className="mt-1 text-muted-foreground">
-                      View conditions vary by season and weather.
-                    </dd>
+                {selectedNote ? (
+                  <div className="flex items-start gap-3">
+                    <Ruler className="mt-0.5 size-4 shrink-0 text-forest" aria-hidden="true" />
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        {copy.noteLabel}
+                      </dt>
+                      <dd className="mt-1 text-muted-foreground">{selectedNote}</dd>
+                    </div>
                   </div>
-                </div>
+                ) : null}
+                {/* Most of these photographs are CC BY-SA: the licence requires the credit. */}
+                {selected.credit ? (
+                  <div className="flex items-start gap-3">
+                    <Camera
+                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        Photograph
+                      </dt>
+                      <dd className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {selected.creditUrl ? (
+                          <a
+                            href={selected.creditUrl}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="underline decoration-dotted underline-offset-2 hover:text-ink"
+                          >
+                            {selected.credit}
+                          </a>
+                        ) : (
+                          selected.credit
+                        )}
+                      </dd>
+                    </div>
+                  </div>
+                ) : null}
               </dl>
             </div>
 
             <button
               type="button"
-              onClick={() => setSelected(null)}
+              onClick={() => setSelectedIndex(null)}
               className="absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/85"
               aria-label="Close image viewer"
               title="Close image viewer"

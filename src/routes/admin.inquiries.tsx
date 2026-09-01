@@ -3,12 +3,44 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { Inbox, Mail, MessageCircle, Phone, RefreshCw, Search, TriangleAlert } from "lucide-react";
+import {
+  Banknote,
+  CalendarClock,
+  CarFront,
+  Inbox,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  RefreshCw,
+  Search,
+  Trash2,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { INQUIRY_STATUSES, listInquiries, setInquiryStatus, type Inquiry } from "@/data/admin";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  deleteInquiry,
+  INQUIRY_STATUSES,
+  listInquiries,
+  setInquiryStatus,
+  type Inquiry,
+} from "@/data/admin";
 import { whatsappLink } from "@/data/site";
 import { errorMessage } from "@/lib/admin-client";
 
@@ -31,6 +63,56 @@ const stamp = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
+const formatNpr = (price: number) => `NPR ${new Intl.NumberFormat("en-IN").format(price)}`;
+
+type BookingDetails = {
+  vehicleName: string | null;
+  vehicleImage: string | null;
+  fareLabel: string | null;
+  quotedPrice: number | null;
+  pickupLocation: string | null;
+  travelTime: string | null;
+};
+
+function messageLine(message: string, label: string) {
+  const prefix = `${label.toLowerCase()}:`;
+  const line = message
+    .split(/\r?\n/)
+    .find((entry) => entry.trim().toLowerCase().startsWith(prefix));
+  return line?.trim().slice(prefix.length).trim() || null;
+}
+
+function parseBooking(inquiry: Inquiry): BookingDetails | null {
+  const isBooking =
+    inquiry.source === "vehicle-booking" || /vehicle booking request for/i.test(inquiry.message);
+  if (!isBooking) return null;
+
+  const requestedVehicle = inquiry.message
+    .match(/vehicle booking request for\s+(.+?)(?:\.|$)/im)?.[1]
+    ?.trim();
+  const image = inquiry.vehicle_image ?? messageLine(inquiry.message, "Vehicle photo");
+  const safeImage = image && (image.startsWith("/") || /^https?:\/\//i.test(image)) ? image : null;
+  const priceText =
+    inquiry.quoted_price !== null
+      ? String(inquiry.quoted_price)
+      : messageLine(inquiry.message, "Quoted price");
+  const price = priceText ? Number(priceText.replace(/[^\d.]/g, "")) : NaN;
+  const dateTime = messageLine(inquiry.message, "Travel date and time");
+
+  return {
+    vehicleName:
+      inquiry.vehicle_name ?? requestedVehicle ?? messageLine(inquiry.message, "Vehicle"),
+    vehicleImage: safeImage,
+    fareLabel: inquiry.fare_label ?? messageLine(inquiry.message, "Fare"),
+    quotedPrice: Number.isFinite(price) ? price : null,
+    pickupLocation: inquiry.pickup_location ?? messageLine(inquiry.message, "Pickup"),
+    travelTime:
+      inquiry.travel_time ??
+      dateTime?.match(/\b\d{1,2}:\d{2}\b/)?.[0] ??
+      messageLine(inquiry.message, "Time"),
+  };
+}
+
 function AdminInquiriesPage() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +121,7 @@ function AdminInquiriesPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,6 +155,21 @@ function AdminInquiriesPage() {
     }
   }
 
+  async function removeInquiry(inquiry: Inquiry) {
+    setDeleting(true);
+    try {
+      await deleteInquiry(inquiry.id);
+      const remaining = inquiries.filter((row) => row.id !== inquiry.id);
+      setInquiries(remaining);
+      setSelected(remaining[0] ?? null);
+      toast.success("Inquiry removed");
+    } catch (error) {
+      toast.error("Could not remove the inquiry", { description: errorMessage(error) });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const statusCounts = useMemo(
     () =>
       Object.fromEntries(
@@ -89,7 +187,16 @@ function AdminInquiriesPage() {
       const matchesStatus = statusFilter === "all" || inquiry.status === statusFilter;
       const matchesSearch =
         !needle ||
-        [inquiry.name, inquiry.phone, inquiry.email, inquiry.destination, inquiry.message]
+        [
+          inquiry.name,
+          inquiry.phone,
+          inquiry.email,
+          inquiry.destination,
+          inquiry.pickup_location,
+          inquiry.vehicle_name,
+          inquiry.fare_label,
+          inquiry.message,
+        ]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(needle));
       return matchesStatus && matchesSearch;
@@ -97,6 +204,7 @@ function AdminInquiriesPage() {
   }, [inquiries, query, statusFilter]);
 
   const current = filtered.find((row) => row.id === selected?.id) ?? filtered[0] ?? null;
+  const booking = current ? parseBooking(current) : null;
 
   const control =
     "h-10 rounded-lg border border-input bg-background px-3 text-sm text-ink outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-ring/20";
@@ -235,6 +343,12 @@ function AdminInquiriesPage() {
                         {row.status}
                       </span>
                     </div>
+                    {row.source === "vehicle-booking" ||
+                    /vehicle booking request for/i.test(row.message) ? (
+                      <span className="mt-1.5 inline-flex items-center gap-1 text-[0.625rem] font-extrabold uppercase text-primary">
+                        <CarFront className="size-3" aria-hidden="true" /> Vehicle booking
+                      </span>
+                    ) : null}
                     <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{row.message}</p>
                     <span className="mt-1.5 block text-[0.6875rem] font-medium text-muted-foreground">
                       {stamp.format(new Date(row.created_at))}
@@ -303,7 +417,97 @@ function AdminInquiriesPage() {
                     </a>
                   </Button>
                 ) : null}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="destructive" className="sm:ml-auto">
+                      <Trash2 aria-hidden="true" />
+                      Remove inquiry
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove this inquiry?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the inquiry from {current.name}. This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={deleting}
+                        onClick={() => void removeInquiry(current)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        <Trash2 aria-hidden="true" />
+                        {deleting ? "Removing" : "Remove inquiry"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
+
+              {booking ? (
+                <div className="grid gap-5 border-b border-border p-5 sm:grid-cols-[14rem_1fr] sm:p-6">
+                  {booking.vehicleImage ? (
+                    <img
+                      src={booking.vehicleImage}
+                      alt={booking.vehicleName ?? "Booked vehicle"}
+                      className="aspect-[4/3] w-full rounded-lg border border-border bg-white object-cover"
+                      width="640"
+                      height="480"
+                    />
+                  ) : (
+                    <div className="grid aspect-[4/3] place-items-center rounded-lg border border-dashed border-border bg-surface">
+                      <CarFront className="size-8 text-muted-foreground" aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="self-center">
+                    <p className="text-xs font-bold uppercase text-primary/70">Vehicle booking</p>
+                    <h3 className="mt-1 font-display text-2xl font-semibold text-ink">
+                      {booking.vehicleName ?? "Vehicle request"}
+                    </h3>
+                  </div>
+                </div>
+              ) : null}
+
+              {booking ? (
+                <div className="border-b border-border px-5 py-5 sm:px-6">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Banknote className="size-4 text-primary" aria-hidden="true" />
+                    <h3 className="font-display text-lg font-semibold text-ink">Booking details</h3>
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <Table>
+                      <TableBody>
+                        <BookingRow label="Customer" value={current.name} />
+                        <BookingRow label="Phone" value={current.phone} />
+                        <BookingRow label="Vehicle" value={booking.vehicleName ?? "-"} />
+                        <BookingRow label="Fare option" value={booking.fareLabel ?? "-"} />
+                        <BookingRow
+                          label="Price"
+                          value={
+                            booking.quotedPrice !== null
+                              ? `${formatNpr(booking.quotedPrice)}${booking.fareLabel?.toLowerCase().includes("hire") ? " / day" : ""}`
+                              : "-"
+                          }
+                          emphasize
+                        />
+                        <BookingRow label="Destination" value={current.destination ?? "-"} />
+                        <BookingRow label="Pickup location" value={booking.pickupLocation ?? "-"} />
+                        <BookingRow label="Travel date" value={current.travel_date ?? "-"} />
+                        <BookingRow label="Pickup time" value={booking.travelTime ?? "-"} />
+                        <BookingRow label="Persons" value={current.travelers?.toString() ?? "-"} />
+                        <BookingRow
+                          label="Vehicle photo"
+                          value={booking.vehicleImage ?? "Not available"}
+                          breakAll
+                        />
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ) : null}
 
               <dl className="grid gap-x-6 gap-y-5 p-5 text-sm sm:grid-cols-2 sm:p-6">
                 <Row label="Phone">
@@ -324,10 +528,35 @@ function AdminInquiriesPage() {
                     </a>
                   </Row>
                 ) : null}
-                {current.destination ? <Row label="Destination">{current.destination}</Row> : null}
+                {!booking && current.destination ? (
+                  <Row label="Destination">{current.destination}</Row>
+                ) : null}
+                {!booking && current.pickup_location ? (
+                  <Row label="Pickup location">
+                    <span className="flex items-center gap-2">
+                      <MapPin className="size-4 text-primary" aria-hidden="true" />
+                      {current.pickup_location}
+                    </span>
+                  </Row>
+                ) : null}
                 {current.tour_slug ? <Row label="Tour">{current.tour_slug}</Row> : null}
-                {current.travel_date ? <Row label="Travel date">{current.travel_date}</Row> : null}
-                {current.travelers ? <Row label="Travellers">{current.travelers}</Row> : null}
+                {!booking && current.travel_date ? (
+                  <Row label="Travel date and time">
+                    <span className="flex items-center gap-2">
+                      <CalendarClock className="size-4 text-primary" aria-hidden="true" />
+                      {current.travel_date}
+                      {current.travel_time ? ` at ${current.travel_time.slice(0, 5)}` : ""}
+                    </span>
+                  </Row>
+                ) : null}
+                {!booking && current.travelers ? (
+                  <Row label="Persons">
+                    <span className="flex items-center gap-2">
+                      <Users className="size-4 text-primary" aria-hidden="true" />
+                      {current.travelers}
+                    </span>
+                  </Row>
+                ) : null}
                 <Row label="Message" wide>
                   <p className="whitespace-pre-wrap rounded-lg bg-secondary/35 p-4 leading-relaxed text-ink">
                     {current.message}
@@ -374,6 +603,35 @@ function FilterButton({
         {count}
       </span>
     </button>
+  );
+}
+
+function BookingRow({
+  label,
+  value,
+  emphasize = false,
+  breakAll = false,
+}: {
+  label: string;
+  value: string;
+  emphasize?: boolean;
+  breakAll?: boolean;
+}) {
+  return (
+    <TableRow>
+      <TableCell className="w-2/5 bg-surface px-4 py-3 text-xs font-bold text-muted-foreground">
+        {label}
+      </TableCell>
+      <TableCell
+        className={
+          "px-4 py-3 " +
+          (emphasize ? "font-extrabold text-primary" : "text-ink") +
+          (breakAll ? " break-all text-xs text-muted-foreground" : "")
+        }
+      >
+        {value}
+      </TableCell>
+    </TableRow>
   );
 }
 
