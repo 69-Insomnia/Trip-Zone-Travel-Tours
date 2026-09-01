@@ -36,7 +36,6 @@ export const Route = createFileRoute("/")({
       description:
         "Handpicked Nepal journeys to Manang, Muktinath, Pathivara, Halesi, Sailung, Kalinchowk, Gosaikunda and more with clear prices and comfortable transport.",
       path: "/",
-      image: "/photos/hero-annapurna.jpg",
     }),
   component: Index,
 });

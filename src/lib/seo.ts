@@ -16,6 +16,14 @@ export function absoluteUrl(pathOrUrl: string) {
   return new URL(pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`, `${SITE_URL}/`).href;
 }
 
+/**
+ * Default social card. Must stay at or above 1200x630 and reasonably close to
+ * 1.91:1 - every platform crops to that box, so a letterbox panorama (which is
+ * what the page heroes are) loses its subject entirely. `manang.jpg` is
+ * 1920x1069, the closest asset to that ratio.
+ */
+export const DEFAULT_SOCIAL_IMAGE = "/photos/manang.jpg";
+
 type SeoOptions = {
   title: string;
   description: string;
@@ -29,7 +37,7 @@ export function seoHead({
   title,
   description,
   path,
-  image = "/photos/hero-annapurna.jpg",
+  image = DEFAULT_SOCIAL_IMAGE,
   type = "website",
   robots,
 }: SeoOptions) {
@@ -50,6 +58,7 @@ export function seoHead({
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: socialImage },
+      { name: "twitter:image:alt", content: `${SITE_NAME} - Nepal travel` },
       ...(robots ? [{ name: "robots", content: robots }] : []),
     ],
     links: [{ rel: "canonical", href: canonical }],
@@ -83,7 +92,7 @@ export function organizationJsonLd(site: {
     alternateName: SITE_NAME,
     url: SITE_URL,
     logo: absoluteUrl("/logo.png"),
-    image: absoluteUrl("/photos/hero-annapurna.jpg"),
+    image: absoluteUrl(DEFAULT_SOCIAL_IMAGE),
     email: CONTACT_EMAIL,
     telephone: site.phones.map(toE164Nepal),
     address: {

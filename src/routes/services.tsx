@@ -41,7 +41,8 @@ export const Route = createFileRoute("/services")({
       description:
         "Book comfortable car hire from Kathmandu, private vehicles, EV vans, Jeeps and tourist buses with itinerary and accommodation support across Nepal.",
       path: "/services",
-      image: "/vehicles/ev-sedan.png",
+      // ev-sedan.png is only 640x360, under the 1200x630 social-card floor.
+      image: "/vehicles/byd-atto-3.png",
     }),
   component: ServicesPage,
 });

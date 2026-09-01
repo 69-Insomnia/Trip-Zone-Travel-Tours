@@ -14,8 +14,10 @@ export const Route = createFileRoute("/blogs/")({
       description:
         "Practical Nepal destination guides, road-trip ideas, pilgrimage tips and local travel advice from Trip Zone.",
       path: "/blogs",
-      image:
-        "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=88",
+      // First-party, like every other route's card: social scrapers should not
+      // depend on a hotlinked Unsplash URL staying up. The hero below still
+      // uses the remote image.
+      image: "/photos/pokhara.jpg",
     }),
   component: BlogsPage,
 });

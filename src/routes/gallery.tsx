@@ -17,7 +17,6 @@ export const Route = createFileRoute("/gallery")({
       description:
         "See mountain roads, sacred places, villages and Himalayan landscapes featured across Trip Zone journeys in Nepal.",
       path: "/gallery",
-      image: "/photos/hero-annapurna.jpg",
     }),
   component: GalleryPage,
 });

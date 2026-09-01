@@ -17,7 +17,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "@/components/ui/sonner";
 import { ContentProvider } from "@/lib/content";
 import { fetchSharedContent } from "@/data/queries";
-import { absoluteUrl, organizationJsonLd } from "@/lib/seo";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, organizationJsonLd } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Trip Zone Travel & Tours Pvt. Ltd." },
       { property: "og:site_name", content: "Trip Zone Travel & Tours" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: absoluteUrl("/photos/hero-annapurna.jpg") },
+      { property: "og:image", content: absoluteUrl(DEFAULT_SOCIAL_IMAGE) },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#153b4a" },
     ],
@@ -104,6 +104,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/logo.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // The page heroes on /blogs, /contact, /destinations and /tours are still
+      // hotlinked from Unsplash, and a hero is the LCP element. Without this the
+      // cross-origin DNS + TLS handshake sits on the critical path.
+      { rel: "preconnect", href: "https://images.unsplash.com" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
