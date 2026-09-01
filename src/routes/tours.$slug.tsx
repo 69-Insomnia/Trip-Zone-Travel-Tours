@@ -13,7 +13,7 @@ import { formatNpr, startingPrice, type Tour } from "@/data/tours";
 import { fetchTour } from "@/data/queries";
 import { telLink, whatsappLink } from "@/data/site";
 import { useSite, useTours, useVideos } from "@/lib/content";
-import { seoHead, tourJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, seoHead, tourJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/tours/$slug")({
   loader: async ({ params }) => {
@@ -46,6 +46,16 @@ export const Route = createFileRoute("/tours/$slug")({
         {
           type: "application/ld+json",
           children: JSON.stringify(tourJsonLd(tour)),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: "Tours", path: "/tours" },
+              { name: tour.name },
+            ]),
+          ),
         },
       ],
     };

@@ -6,7 +6,7 @@ import { BookingCTA } from "@/components/BookingCTA";
 import { PageHero } from "@/components/PageHero";
 import { fetchTours } from "@/data/queries";
 import { formatNpr, startingPrice, type Tour } from "@/data/tours";
-import { faqJsonLd, seoHead, tourCollectionJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, faqJsonLd, seoHead, tourCollectionJsonLd } from "@/lib/seo";
 
 type ToursSearch = { destination?: string | undefined; type?: string | undefined };
 
@@ -25,18 +25,28 @@ export const Route = createFileRoute("/tours/")({
       path: "/tours",
       image: "/photos/char-dham.jpg",
     }),
-    scripts: loaderData
-      ? [
-          {
-            type: "application/ld+json",
-            children: JSON.stringify(tourCollectionJsonLd(loaderData)),
-          },
-          {
-            type: "application/ld+json",
-            children: JSON.stringify(faqJsonLd(tourPackageQuestions(loaderData))),
-          },
-        ]
-      : [],
+    scripts: [
+      // Breadcrumbs do not depend on loaderData, so they are emitted even when
+      // the tour list fails to load.
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Tours" }]),
+        ),
+      },
+      ...(loaderData
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(tourCollectionJsonLd(loaderData)),
+            },
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(faqJsonLd(tourPackageQuestions(loaderData))),
+            },
+          ]
+        : []),
+    ],
   }),
   component: ToursPage,
 });

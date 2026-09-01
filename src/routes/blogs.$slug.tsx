@@ -1,10 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Clock, MapPin } from "lucide-react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { BookingCTA } from "@/components/BookingCTA";
 import { PageHero } from "@/components/PageHero";
 import { fetchBlog, fetchBlogs } from "@/data/queries";
-import { articleJsonLd, seoHead } from "@/lib/seo";
+import { articleJsonLd, breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blogs/$slug")({
   loader: async ({ params }) => {
@@ -36,6 +37,16 @@ export const Route = createFileRoute("/blogs/$slug")({
           type: "application/ld+json",
           children: JSON.stringify(articleJsonLd(blog)),
         },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: "Blogs", path: "/blogs" },
+              { name: blog.title },
+            ]),
+          ),
+        },
       ],
     };
   },
@@ -55,9 +66,17 @@ function BlogDetailPage() {
           image={blog.image}
           imageAlt={blog.title}
         >
+          <Breadcrumbs
+            tone="light"
+            items={[
+              { label: "Home", to: "/" },
+              { label: "Blogs", to: "/blogs" },
+              { label: blog.title },
+            ]}
+          />
           <Link
             to="/blogs"
-            className="inline-flex items-center gap-2 text-sm font-bold text-primary-foreground/70 transition hover:text-accent"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-primary-foreground/70 transition hover:text-accent"
           >
             <ArrowLeft className="size-4" aria-hidden="true" /> Back to all guides
           </Link>

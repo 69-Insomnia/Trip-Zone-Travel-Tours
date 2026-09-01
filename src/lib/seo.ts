@@ -56,6 +56,19 @@ export function seoHead({
   };
 }
 
+/**
+ * Normalises an operator-entered Nepali number to E.164. `phones` is editable
+ * from the admin panel, so a value may already carry a +977 prefix or a trunk
+ * 0 and this has to be idempotent. Length is the only safe discriminator for a
+ * duplicated country code: a 10-digit Nepali mobile can itself begin with 977,
+ * so stripping on prefix alone would corrupt valid numbers.
+ */
+function toE164Nepal(phone: string) {
+  let digits = phone.replace(/\D/g, "");
+  if (digits.length > 10 && digits.startsWith("977")) digits = digits.slice(3);
+  return `+977${digits.replace(/^0+/, "")}`;
+}
+
 export function organizationJsonLd(site: {
   name: string;
   address: string;
@@ -72,7 +85,7 @@ export function organizationJsonLd(site: {
     logo: absoluteUrl("/logo.png"),
     image: absoluteUrl("/photos/hero-annapurna.jpg"),
     email: CONTACT_EMAIL,
-    telephone: site.phones.map((phone) => `+977${phone.replace(/\D/g, "")}`),
+    telephone: site.phones.map(toE164Nepal),
     address: {
       "@type": "PostalAddress",
       streetAddress: site.address,
@@ -84,7 +97,9 @@ export function organizationJsonLd(site: {
       { "@type": "Country", name: "India" },
     ],
     sameAs: site.socials.map((social) => social.url),
-    priceRange: "NPR",
+    // priceRange is a qualitative range indicator, not a currency code. Kept
+    // symbolic so it cannot drift out of sync with the tour price data.
+    priceRange: "$$",
   };
 }
 
@@ -100,7 +115,17 @@ export function tourJsonLd(tour: Tour) {
     url,
     category: `${tour.type} tour package`,
     touristType: tour.type,
-    itinerary: tour.itinerary.map((day) => `Day ${day.day}: ${day.route}`),
+    // TouristTrip.itinerary ranges over ItemList | Place, so plain strings are
+    // discarded by consumers. Emit an ordered ItemList instead.
+    itinerary: {
+      "@type": "ItemList",
+      numberOfItems: tour.itinerary.length,
+      itemListElement: tour.itinerary.map((day) => ({
+        "@type": "ListItem",
+        position: day.day,
+        name: `Day ${day.day}: ${day.route}`,
+      })),
+    },
     provider: { "@id": `${SITE_URL}/#organization` },
     offers: tour.prices.map((option) => ({
       "@type": "Offer",
@@ -118,6 +143,9 @@ export function tourJsonLd(tour: Tour) {
 export function articleJsonLd(blog: BlogPost) {
   const url = absoluteUrl(`/blogs/${blog.slug}`);
   const published = new Date(blog.publishedAt);
+  const publishedIso = Number.isNaN(published.valueOf())
+    ? blog.publishedAt
+    : published.toISOString();
 
   return {
     "@context": "https://schema.org",
@@ -126,7 +154,11 @@ export function articleJsonLd(blog: BlogPost) {
     headline: blog.title,
     description: blog.excerpt,
     image: [absoluteUrl(blog.image)],
-    datePublished: Number.isNaN(published.valueOf()) ? blog.publishedAt : published.toISOString(),
+    datePublished: publishedIso,
+    // BlogPost carries no updatedAt, so the honest floor is "never modified
+    // since publication". Add an updatedAt field to the data model if posts
+    // start getting edited, otherwise this silently becomes a false claim.
+    dateModified: publishedIso,
     mainEntityOfPage: url,
     author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization` },
@@ -161,6 +193,24 @@ export function faqJsonLd(items: { question: string; answer: string }[]) {
         "@type": "Answer",
         text: item.answer,
       },
+    })),
+  };
+}
+
+/**
+ * Must mirror the visible <Breadcrumbs> trail on the same page - Google
+ * requires the markup and the rendered trail to correspond. The final crumb is
+ * the current page, so it carries no `item`.
+ */
+export function breadcrumbJsonLd(trail: { name: string; path?: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      ...(crumb.path ? { item: absoluteUrl(crumb.path) } : {}),
     })),
   };
 }
