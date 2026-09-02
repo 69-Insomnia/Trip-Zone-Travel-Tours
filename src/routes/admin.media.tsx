@@ -44,10 +44,9 @@ const videos: Collection = {
     { name: "poster_alt", kind: "text", label: "Poster description" },
     {
       name: "tour_slugs",
-      kind: "stringList",
+      kind: "tourSlugs",
       label: "Shown on these tours",
-      placeholder: "muktinath-tour",
-      help: "Web addresses of tours. Leave empty to show it on the home page instead.",
+      help: "Tick every package this film belongs to. Leave all of them unticked to show it on the home page instead.",
     },
     { name: "sort_order", kind: "number", label: "Order", min: 0 },
     { name: "published", kind: "switch", label: "Visibility" },
