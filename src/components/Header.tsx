@@ -197,8 +197,15 @@ export function Header() {
         </div>
       </div>
 
+      {/*
+       * Closed state is marked with `inert` alone, deliberately. Tapping a link
+       * in this drawer closes it, so on that render the link still holds focus
+       * and an `aria-hidden` here would be hiding a focused element from screen
+       * readers — the browser blocks that and logs a warning. `inert` covers
+       * both jobs: it drops the subtree from the accessibility tree and moves
+       * focus out instead of trapping it behind a hidden ancestor.
+       */}
       <div
-        aria-hidden={!open}
         inert={!open}
         className={cn(
           "overflow-hidden border-b border-border bg-background transition-[max-height,opacity] duration-300 lg:hidden",
@@ -234,7 +241,6 @@ export function Header() {
                     </button>
                   </div>
                   <div
-                    aria-hidden={!mobileToursOpen}
                     inert={!mobileToursOpen}
                     className={cn(
                       "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300",
