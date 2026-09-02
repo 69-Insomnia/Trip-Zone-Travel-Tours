@@ -613,6 +613,42 @@ export const faqs = [
     q: "What expenses are not included?",
     a: "Mineral water, drinks, personal expenses, entrance fees where applicable, travel insurance where specified, and any extra costs caused by natural calamities or strikes.",
   },
+  // Informational questions. The answers above cover booking mechanics; these
+  // answer what travellers actually search for before they know who to book
+  // with, and they are what AI answer engines quote. Every figure below is
+  // taken from the package data in this file — update both together.
+  {
+    q: "How many days do you need for a Manang tour from Kathmandu?",
+    a: "Our Manang package runs 3 nights and 4 days from Kathmandu, driving up the Marsyangdi valley by Scorpio. Manang sits in the Gandaki region behind the Annapurna range, and the four-day format allows a gradual gain in altitude rather than rushing the drive in a single day.",
+  },
+  {
+    q: "Which Trip Zone packages are pilgrimage tours?",
+    a: "Muktinath in Mustang, Pathivara in Taplejung, Halesi Mahadev in Khotang and the Gosaikunda trek in Langtang are our pilgrimage packages inside Nepal. The Char Dham Pilgrimage Tour 2026 is a 15-day overland journey from Nepal to Yamunotri, Gangotri, Kedarnath and Badrinath in Uttarakhand, India, including Haridwar, Rishikesh and a closing bath at Devghat.",
+  },
+  {
+    q: "What short tours are available from Kathmandu?",
+    a: "Three packages run as 1 night and 2 days: Halesi Mahadev in Khotang, the combined Sailung and Kalinchowk nature tour across Dolakha and Ramechhap, and the Ama Yangri trek in Helambu, Sindhupalchok. These suit a weekend without taking leave from work.",
+  },
+  {
+    q: "Where do Trip Zone tours depart from?",
+    a: "Almost all packages depart from Kathmandu. The Char Dham Pilgrimage Tour also offers departure points at Morang, Sunsari and Jhapa in eastern Nepal. Pickup within the Kathmandu valley is arranged when you book.",
+  },
+  {
+    q: "What vehicles does Trip Zone use for tours?",
+    a: "Depending on the route and group size we operate Scorpio and Jeep for hill roads, cars for smaller groups, EV vans and electric SUVs for quieter long-distance travel, and tourist buses for large departures. Each package page lists which options are available for that route and the per-person price for each.",
+  },
+  {
+    q: "What is included in a Trip Zone package price?",
+    a: "The listed per-person price covers transport in your chosen vehicle, hotel accommodation for the nights stated in the package duration, and breakfast, lunch and dinner. Drinks, mineral water, personal expenses and entrance fees where applicable are not included.",
+  },
+  {
+    q: "What should I pack for a mountain tour in Nepal?",
+    a: "Pack warm clothes, thermals, a warm hat, muffler, gloves and thick trousers for higher routes, plus light trekking or sports shoes and a raincoat or umbrella. Bring a cap, sunglasses, camera, torch and a water bottle, along with your own towel and toiletries. A hiking stick and dry food are optional.",
+  },
+  {
+    q: "Can Trip Zone arrange tours for large groups?",
+    a: "Yes. For groups of roughly 25 to 30 people, departure dates and the itinerary can be customized around your schedule, and tourist bus transport is available. Tell us your group size and preferred dates and we will build the plan around them.",
+  },
 ];
 
 /**
