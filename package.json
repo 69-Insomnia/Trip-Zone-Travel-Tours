@@ -14,6 +14,7 @@
     "db:migrate": "node scripts/db/migrate.mjs",
     "db:seed": "node --import ./scripts/db/register-ts.mjs scripts/db/seed.mjs",
     "db:sync-tour-views": "node --import ./scripts/db/register-ts.mjs scripts/db/sync-tour-views.mjs",
+    "db:sync-faqs": "node --import ./scripts/db/register-ts.mjs scripts/db/sync-faqs.mjs",
     "db:admin": "node scripts/db/create-admin.mjs",
     "media:view-photos": "node --import ./scripts/db/register-ts.mjs scripts/media/fetch-view-photos.mjs",
     "media:optimize": "node scripts/media/optimize-images.mjs"

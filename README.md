@@ -34,17 +34,35 @@ Copy `.env.example` to `.env` and fill in the three values:
 `.env` is gitignored. The two `VITE_` values are inlined during `npm run build`,
 so they must also be set in the hosting environment that runs the build.
 
+Take `DATABASE_URL` from Supabase's **Session pooler** string
+(`postgres.<project-ref>@aws-0-<region>.pooler.supabase.com:5432`), not the
+direct `db.<project-ref>.supabase.co` one. The direct host publishes an AAAA
+record and no A record, so it is unreachable from any network without IPv6 and
+the scripts fail with `ENOTFOUND` before they ever reach Postgres.
+
+The database password cannot be changed over SQL — Supabase revokes `alter role`
+from `postgres`, so it is reset from the dashboard under Project Settings →
+Database → Reset database password. Afterwards replace the password inside
+`DATABASE_URL`; the rest of the string is unchanged.
+
 Database commands:
 
 ```sh
 npm run db:migrate   # create tables, row level security policies and triggers
 npm run db:seed      # load the content snapshot in src/data into the database
+npm run db:sync-faqs # add FAQs written in src/data that the database lacks
 ```
 
 Seeding overwrites database rows with the files in `src/data`, so run it once on
 a fresh project. After that the database is the source of truth; those files
 remain as the offline fallback used when Supabase cannot be reached, which keeps
 pages rendering instead of failing.
+
+Because seeding deletes before it inserts, it destroys anything written in
+`/admin`. To publish new FAQs added to `src/data/tours.ts` on a project already
+in use, run `npm run db:sync-faqs` instead — it only inserts questions the
+database does not have, and leaves edited answers alone. Pass `--dry-run` first
+to see what it would add.
 
 Row level security lets anonymous visitors read published content and insert an
 inquiry, nothing more. `node scripts/db/verify-inquiry.mjs` checks that: it
