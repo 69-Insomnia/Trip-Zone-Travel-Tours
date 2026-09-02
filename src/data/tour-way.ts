@@ -262,6 +262,8 @@ export function buildTourWay(itinerary: ItineraryDay[], views: TourView[]): Tour
   return {
     stops,
     days: days.length,
-    ...(highest?.elevation ? { highPoint: { name: highest.name, elevation: highest.elevation } } : {}),
+    ...(highest?.elevation
+      ? { highPoint: { name: highest.name, elevation: highest.elevation } }
+      : {}),
   };
 }

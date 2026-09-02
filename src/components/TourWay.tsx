@@ -69,13 +69,7 @@ function StopChip({ stop, isHighPoint }: { stop: WayStop; isHighPoint: boolean }
   );
 }
 
-export function TourWay({
-  itinerary,
-  views,
-}: {
-  itinerary: ItineraryDay[];
-  views: TourView[];
-}) {
+export function TourWay({ itinerary, views }: { itinerary: ItineraryDay[]; views: TourView[] }) {
   // Every word around the route is editable in /admin/settings.
   const copy = useSite().waySection;
   const way = buildTourWay(itinerary, views);

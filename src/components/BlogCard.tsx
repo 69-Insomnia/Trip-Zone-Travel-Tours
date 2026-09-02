@@ -15,6 +15,8 @@ export function BlogCard({ blog }: { blog: BlogPost }) {
           alt={blog.title}
           className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          width="1240"
+          height="800"
         />
         <span className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.1em] text-primary backdrop-blur">
           {blog.category}
