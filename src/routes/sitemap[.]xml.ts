@@ -37,10 +37,11 @@ function sitemapEntry(path: string, lastModified?: string, images: string[] = []
 }
 
 /**
- * Image sitemap entries are only emitted for first-party assets. Cross-domain
- * images (the Unsplash hotlinks still used by some heroes and the gallery) need
- * Search Console cross-submission verification on the hosting domain, which we
- * do not have, so submitting them would just produce warnings.
+ * Image sitemap entries are only emitted for first-party assets. Tour and blog
+ * records are editable from the admin panel, so a cross-domain image can still
+ * appear here; those need Search Console cross-submission verification on the
+ * hosting domain, which we do not have, so submitting them would just produce
+ * warnings.
  *
  * `image:loc` is the only child element Google still reads - title, caption,
  * license and geo_location were all dropped in 2022.

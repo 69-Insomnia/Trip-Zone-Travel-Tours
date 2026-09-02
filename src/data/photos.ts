@@ -33,7 +33,7 @@ const photos = {
   },
   manangRoad: {
     src: "/photos/manang-road.jpg",
-    alt: "Mountain road climbing the Marsyangdi valley on the way to Manang",
+    alt: "The Marsyangdi river cutting through cliffs at Dharapani on the road into Manang",
   },
   muktinath: {
     src: "/photos/muktinath.jpg",

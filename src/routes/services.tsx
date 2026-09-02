@@ -42,8 +42,10 @@ export const Route = createFileRoute("/services")({
       description:
         "Book comfortable car hire from Kathmandu, private vehicles, EV vans, Jeeps and tourist buses with itinerary and accommodation support across Nepal.",
       path: "/services",
-      // ev-sedan.png is only 640x360, under the 1200x630 social-card floor.
-      image: "/vehicles/byd-atto-3.png",
+      // Purpose-built 1200x630 crop. The on-page fleet images are WebP, which
+      // social scrapers still handle unreliably, so the card gets its own JPEG.
+      // Regenerate with `npm run media:optimize`.
+      image: "/vehicles/byd-atto-3-og.jpg",
     }),
     scripts: [
       {
@@ -87,17 +89,21 @@ const services = [
 ];
 
 const fleet: Vehicle[] = [
-  { image: "/vehicles/ev-hatch.png", title: "Compact EV", note: "City trips and couples" },
-  { image: "/vehicles/byd-atto-3.png", title: "Electric SUV", note: "Comfortable regional travel" },
+  { image: "/vehicles/ev-hatch.webp", title: "Compact EV", note: "City trips and couples" },
   {
-    image: "/vehicles/byd-yuan-plus.png",
+    image: "/vehicles/byd-atto-3.webp",
+    title: "Electric SUV",
+    note: "Comfortable regional travel",
+  },
+  {
+    image: "/vehicles/byd-yuan-plus.webp",
     title: "Premium EV SUV",
     note: "Spacious private journeys",
   },
-  { image: "/vehicles/ev-sedan.png", title: "Electric sedan", note: "Quiet long-distance travel" },
-  { image: "/vehicles/nissan-magnite.png", title: "Compact SUV", note: "Flexible road trips" },
-  { image: "/vehicles/scorpio.png", title: "Scorpio / Jeep", note: "Groups and hill routes" },
-  { image: "/vehicles/ev-suv.png", title: "Rugged EV SUV", note: "Roomy adventure travel" },
+  { image: "/vehicles/ev-sedan.webp", title: "Electric sedan", note: "Quiet long-distance travel" },
+  { image: "/vehicles/nissan-magnite.webp", title: "Compact SUV", note: "Flexible road trips" },
+  { image: "/vehicles/scorpio.webp", title: "Scorpio / Jeep", note: "Groups and hill routes" },
+  { image: "/vehicles/ev-suv.webp", title: "Rugged EV SUV", note: "Roomy adventure travel" },
   { image: "/vehicles/ev-van.jpg", title: "EV passenger van", note: "Families and small groups" },
   {
     image: "/vehicles/tourist-bus-kathmandu.jpg",
@@ -178,9 +184,9 @@ function ServicesPage() {
         eyebrow="Travel and vehicle services"
         title="The right vehicle for every road."
         subtitle="Car hire from Kathmandu, private tour transport and complete journey support for travel across Nepal."
-        image="/vehicles/ev-sedan.png"
-        imageAlt="Electric sedan travelling on a tree-lined road"
-        imagePosition="center 56%"
+        image="/vehicles/tourist-bus-kathmandu.jpg"
+        imageAlt="Tourist bus with a green tourist number plate on a street in Kathmandu"
+        imagePosition="center 60%"
       >
         <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Services" }]} />
       </PageHero>

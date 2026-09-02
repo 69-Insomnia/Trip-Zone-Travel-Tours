@@ -104,9 +104,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/logo.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      // The page heroes on /blogs, /contact, /destinations and /tours are still
-      // hotlinked from Unsplash, and a hero is the LCP element. Without this the
-      // cross-origin DNS + TLS handshake sits on the critical path.
+      // Every hero is now a first-party photo, so nothing on the LCP path is
+      // cross-origin. The gallery grid still hotlinks Unsplash though, and
+      // warming DNS + TLS here is cheaper than paying for it on that route.
       { rel: "preconnect", href: "https://images.unsplash.com" },
       {
         rel: "stylesheet",

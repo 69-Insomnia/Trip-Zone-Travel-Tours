@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
 import { fetchBlogs } from "@/data/queries";
+import { usePhoto } from "@/lib/content";
 import { blogCollectionJsonLd, breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blogs/")({
@@ -15,9 +16,8 @@ export const Route = createFileRoute("/blogs/")({
       description:
         "Practical Nepal destination guides, road-trip ideas, pilgrimage tips and local travel advice from Trip Zone.",
       path: "/blogs",
-      // First-party, like every other route's card: social scrapers should not
-      // depend on a hotlinked Unsplash URL staying up. The hero below still
-      // uses the remote image.
+      // First-party, like every other route's card, and the same photo the
+      // hero below renders.
       image: "/photos/pokhara.jpg",
     }),
     scripts: [
@@ -44,6 +44,7 @@ export const Route = createFileRoute("/blogs/")({
 
 function BlogsPage() {
   const blogs = Route.useLoaderData();
+  const hero = usePhoto("pokhara");
 
   return (
     <>
@@ -51,9 +52,8 @@ function BlogsPage() {
         eyebrow="The Trip Zone journal"
         title="Ideas for your next Nepal journey."
         subtitle="Destination guides, route notes and practical tips to help you travel Nepal with more confidence."
-        image="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=2200&q=88"
-        imageAlt="Nepal valley and mountain road"
-        imagePosition="center 48%"
+        image={hero.src}
+        imageAlt={hero.alt}
       >
         <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Blogs" }]} />
       </PageHero>

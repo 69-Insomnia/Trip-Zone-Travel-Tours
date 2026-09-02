@@ -276,7 +276,7 @@ function Index() {
             <Reveal className="col-span-2">
               <figure className="group relative overflow-hidden rounded-xl bg-ink">
                 <img
-                  src="/vehicles/ev-suv.png"
+                  src="/vehicles/ev-suv.webp"
                   alt="Electric SUV available for private Nepal travel"
                   className="aspect-[16/8] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                   loading="lazy"
@@ -296,7 +296,7 @@ function Index() {
             <Reveal delay={100}>
               <figure className="group relative overflow-hidden rounded-xl bg-ink">
                 <img
-                  src="/vehicles/scorpio.png"
+                  src="/vehicles/scorpio.webp"
                   alt="Scorpio Jeep for group and hill routes"
                   className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                   loading="lazy"

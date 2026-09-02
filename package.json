@@ -15,7 +15,8 @@
     "db:seed": "node --import ./scripts/db/register-ts.mjs scripts/db/seed.mjs",
     "db:sync-tour-views": "node --import ./scripts/db/register-ts.mjs scripts/db/sync-tour-views.mjs",
     "db:admin": "node scripts/db/create-admin.mjs",
-    "media:view-photos": "node --import ./scripts/db/register-ts.mjs scripts/media/fetch-view-photos.mjs"
+    "media:view-photos": "node --import ./scripts/db/register-ts.mjs scripts/media/fetch-view-photos.mjs",
+    "media:optimize": "node scripts/media/optimize-images.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -90,6 +91,7 @@
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "sharp": "^0.35.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5"

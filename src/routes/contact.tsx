@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { telLink } from "@/data/site";
-import { useSite, useWhatsappLink } from "@/lib/content";
+import { usePhoto, useSite, useWhatsappLink } from "@/lib/content";
 import { PageHero } from "@/components/PageHero";
 import { breadcrumbJsonLd, CONTACT_EMAIL, seoHead } from "@/lib/seo";
 
@@ -31,6 +31,9 @@ export const Route = createFileRoute("/contact")({
 function ContactPage() {
   const site = useSite();
   const whatsapp = useWhatsappLink();
+  // Kathmandu Durbar Square - the city the office is actually in, and this
+  // route's og:image.
+  const hero = usePhoto("kathmandu");
 
   return (
     <>
@@ -38,8 +41,8 @@ function ContactPage() {
         eyebrow="Start planning"
         title="Tell us where Nepal is calling you."
         subtitle="Share your dates, group size and preferred route. We will reply with the right options."
-        image="https://images.unsplash.com/photo-1524498250077-390f9e378fc0?auto=format&fit=crop&w=2200&q=88"
-        imageAlt="Kathmandu cityscape and temple architecture"
+        image={hero.src}
+        imageAlt={hero.alt}
         imagePosition="center 42%"
       >
         <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Contact" }]} />

@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
-import { useDestinations } from "@/lib/content";
+import { useDestinations, usePhoto } from "@/lib/content";
 import { breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/destinations")({
@@ -31,6 +31,8 @@ export const Route = createFileRoute("/destinations")({
 
 function DestinationsPage() {
   const destinations = useDestinations();
+  // Matches this route's og:image, so the social card and the hero agree.
+  const hero = usePhoto("manang");
 
   return (
     <>
@@ -38,8 +40,8 @@ function DestinationsPage() {
         eyebrow="Go beyond the usual"
         title="Places that stay with you."
         subtitle="High valleys, sacred shrines, lakeside towns and quiet hilltop viewpoints across Nepal."
-        image="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=88"
-        imageAlt="Himalayan mountains in Nepal"
+        image={hero.src}
+        imageAlt={hero.alt}
       >
         <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Destinations" }]} />
       </PageHero>

@@ -6,6 +6,7 @@ import { BookingCTA } from "@/components/BookingCTA";
 import { PageHero } from "@/components/PageHero";
 import { fetchTours } from "@/data/queries";
 import { formatNpr, startingPrice, type Tour } from "@/data/tours";
+import { usePhoto } from "@/lib/content";
 import { breadcrumbJsonLd, faqJsonLd, seoHead, tourCollectionJsonLd } from "@/lib/seo";
 
 type ToursSearch = { destination?: string | undefined; type?: string | undefined };
@@ -91,6 +92,9 @@ function ToursPage() {
   const { destination, type } = Route.useSearch();
   const tours = Route.useLoaderData();
   const packageQuestions = tourPackageQuestions(tours);
+  // Kagbeni on the Mustang road: a real Nepal touring route, unlike the generic
+  // stock scenery this used to hotlink.
+  const hero = usePhoto("kagbeni");
 
   const filtered = tours.filter((t) => {
     const byType = !type || t.type === type;
@@ -110,8 +114,8 @@ function ToursPage() {
         eyebrow="Curated departures"
         title="Nepal Tour Packages"
         subtitle="Every package below shows its real duration and per-person price by vehicle. Dates, group sizes and vehicles can be adjusted on request."
-        image="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2200&q=88"
-        imageAlt="Mountain valley road in Nepal"
+        image={hero.src}
+        imageAlt={hero.alt}
       >
         <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Tours" }]} />
       </PageHero>
