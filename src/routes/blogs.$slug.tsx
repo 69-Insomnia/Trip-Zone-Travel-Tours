@@ -51,7 +51,28 @@ export const Route = createFileRoute("/blogs/$slug")({
     };
   },
   component: BlogDetailPage,
+  // Without this the notFound bubbles to the root shell, this route stops
+  // matching and the `!loaderData` head above never runs - so a missing post
+  // used to serve the generic site title with no noindex on a 404 response.
+  notFoundComponent: BlogNotFound,
 });
+
+function BlogNotFound() {
+  return (
+    <section className="section-y pt-36">
+      <div className="container-page text-center">
+        <h1 className="display-section text-ink">That guide isn't published</h1>
+        <p className="mx-auto mt-4 max-w-md text-muted-foreground">
+          The article you're looking for may have been renamed. Browse the Trip Zone journal
+          instead.
+        </p>
+        <Button asChild variant="accent" size="lg" className="mt-8">
+          <Link to="/blogs">Read all guides</Link>
+        </Button>
+      </div>
+    </section>
+  );
+}
 
 function BlogDetailPage() {
   const { blog, related } = Route.useLoaderData();
