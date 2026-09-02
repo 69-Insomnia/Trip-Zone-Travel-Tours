@@ -1,21 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { telLink } from "@/data/site";
 import { useSite, useWhatsappLink } from "@/lib/content";
 import { PageHero } from "@/components/PageHero";
-import { CONTACT_EMAIL, seoHead } from "@/lib/seo";
+import { breadcrumbJsonLd, CONTACT_EMAIL, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
-  head: () =>
-    seoHead({
+  head: () => ({
+    ...seoHead({
       title: "Contact Trip Zone Travel & Tours | Koteshwor, Kathmandu",
       description:
         "Contact Trip Zone Travel & Tours in Koteshwor, Kathmandu by phone, WhatsApp or email to plan your Nepal journey.",
       path: "/contact",
       image: "/photos/kathmandu.jpg",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Contact" }]),
+        ),
+      },
+    ],
+  }),
   component: ContactPage,
 });
 function ContactPage() {
@@ -31,7 +41,9 @@ function ContactPage() {
         image="https://images.unsplash.com/photo-1524498250077-390f9e378fc0?auto=format&fit=crop&w=2200&q=88"
         imageAlt="Kathmandu cityscape and temple architecture"
         imagePosition="center 42%"
-      />
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Contact" }]} />
+      </PageHero>
       <section className="section-y">
         <div className="container-page grid gap-10 lg:grid-cols-[.75fr_1.25fr]">
           <Reveal>

@@ -2,21 +2,31 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, HeartHandshake, MapPinned, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BookingCTA } from "@/components/BookingCTA";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
 import { usePhoto, useSite } from "@/lib/content";
-import { seoHead } from "@/lib/seo";
+import { breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
-  head: () =>
-    seoHead({
+  head: () => ({
+    ...seoHead({
       title: "About Trip Zone Travel & Tours | Kathmandu, Nepal",
       description:
         "Learn how Trip Zone Travel & Tours plans comfortable, locally guided Nepal journeys for groups, couples and families.",
       path: "/about",
       image: "/photos/boudhanath.jpg",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "About" }]),
+        ),
+      },
+    ],
+  }),
   component: AboutPage,
 });
 
@@ -32,7 +42,9 @@ function AboutPage() {
         subtitle={`${site.name} helps travellers experience Nepal through scenic journeys, pilgrimage routes, mountain landscapes and cultural towns.`}
         image={hero.src}
         imageAlt={hero.alt}
-      />
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "About" }]} />
+      </PageHero>
       <section className="section-y">
         <div className="container-page grid gap-12 lg:grid-cols-[1.1fr_.9fr]">
           <Reveal>

@@ -2,22 +2,32 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, Camera, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { BookingCTA } from "@/components/BookingCTA";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
 import { fetchGallery } from "@/data/queries";
 import { type GalleryItem } from "@/data/gallery";
 import { cn } from "@/lib/utils";
-import { seoHead } from "@/lib/seo";
+import { seoHead, breadcrumbJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/gallery")({
   loader: () => fetchGallery(),
-  head: () =>
-    seoHead({
+  head: () => ({
+    ...seoHead({
       title: "Nepal Travel Gallery | Trip Zone Travel & Tours",
       description:
         "See mountain roads, sacred places, villages and Himalayan landscapes featured across Trip Zone journeys in Nepal.",
       path: "/gallery",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Gallery" }]),
+        ),
+      },
+    ],
+  }),
   component: GalleryPage,
 });
 
@@ -62,7 +72,9 @@ function GalleryPage() {
         image={heroImage}
         imageAlt="Mountain landscape in Nepal"
         imagePosition="center 42%"
-      />
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Gallery" }]} />
+      </PageHero>
 
       <section className="section-y">
         <div className="container-page">

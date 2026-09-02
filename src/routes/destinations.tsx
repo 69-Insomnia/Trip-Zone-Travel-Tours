@@ -1,21 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DestinationCard } from "@/components/DestinationCard";
 import { BookingCTA } from "@/components/BookingCTA";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
 import { useDestinations } from "@/lib/content";
-import { seoHead } from "@/lib/seo";
+import { breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/destinations")({
-  head: () =>
-    seoHead({
+  head: () => ({
+    ...seoHead({
       title: "Nepal Travel Destinations | Trip Zone Travel & Tours",
       description:
         "Explore Himalayan valleys, pilgrimage sites, lakes, hill towns and nature destinations covered by Trip Zone tours across Nepal.",
       path: "/destinations",
       image: "/photos/manang.jpg",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Destinations" }]),
+        ),
+      },
+    ],
+  }),
   component: DestinationsPage,
 });
 
@@ -30,7 +40,9 @@ function DestinationsPage() {
         subtitle="High valleys, sacred shrines, lakeside towns and quiet hilltop viewpoints across Nepal."
         image="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=88"
         imageAlt="Himalayan mountains in Nepal"
-      />
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Destinations" }]} />
+      </PageHero>
       <section className="section-y">
         <div className="container-page">
           <SectionHeading

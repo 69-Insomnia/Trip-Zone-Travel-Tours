@@ -6,7 +6,10 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // Build output. These are gitignored, but flat config does not read
+  // .gitignore, so without them `npm run lint` reports tens of thousands of
+  // prettier errors against generated bundles on any machine that has built.
+  { ignores: ["dist", ".output", ".vinxi", ".vercel", ".tanstack"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

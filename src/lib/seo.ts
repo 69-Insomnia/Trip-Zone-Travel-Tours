@@ -124,6 +124,15 @@ export function tourJsonLd(tour: Tour) {
     url,
     category: `${tour.type} tour package`,
     touristType: tour.type,
+    // Neither Trip nor Product defines `duration`, so the trip length goes in
+    // additionalProperty rather than an invented field. The human-readable
+    // string is kept alongside the numbers because that is what the page shows.
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "Duration", value: tour.duration },
+      { "@type": "PropertyValue", name: "Days", value: tour.days, unitText: "days" },
+      { "@type": "PropertyValue", name: "Nights", value: tour.nights, unitText: "nights" },
+      { "@type": "PropertyValue", name: "Region", value: tour.region },
+    ],
     // TouristTrip.itinerary ranges over ItemList | Place, so plain strings are
     // discarded by consumers. Emit an ordered ItemList instead.
     itinerary: {
@@ -173,6 +182,70 @@ export function articleJsonLd(blog: BlogPost) {
     publisher: { "@id": `${SITE_URL}/#organization` },
     about: blog.location,
     articleSection: blog.category,
+  };
+}
+
+/**
+ * Site-level entity. Both Google and the AI crawlers use this to decide what
+ * "Trip Zone" refers to and who published a given page, so it is emitted on
+ * every route and points at the same #organization node the pages reference.
+ */
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    url: SITE_URL,
+    name: SITE_NAME,
+    inLanguage: "en",
+    publisher: { "@id": `${SITE_URL}/#organization` },
+  };
+}
+
+/** Blog index. `blogPost` is the documented inverse of BlogPosting.isPartOf. */
+export function blogCollectionJsonLd(posts: BlogPost[]) {
+  const url = absoluteUrl("/blogs");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${url}#blog`,
+    url,
+    name: `${SITE_NAME} travel journal`,
+    inLanguage: "en",
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      "@id": `${absoluteUrl(`/blogs/${post.slug}`)}#article`,
+      headline: post.title,
+      url: absoluteUrl(`/blogs/${post.slug}`),
+    })),
+  };
+}
+
+/**
+ * The services page. Modelled as an ItemList of Service rather than
+ * hasOfferCatalog, because the page is a list of what is offered and the list
+ * order is what the page shows. No price is asserted: the fares are quoted per
+ * route, and inventing a single figure would be a false claim.
+ */
+export function serviceListJsonLd(services: { title: string; copy: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${SITE_NAME} travel services`,
+    numberOfItems: services.length,
+    itemListElement: services.map((service, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Service",
+        name: service.title,
+        description: service.copy,
+        serviceType: service.title,
+        provider: { "@id": `${SITE_URL}/#organization` },
+        areaServed: { "@type": "Country", name: "Nepal" },
+      },
+    })),
   };
 }
 

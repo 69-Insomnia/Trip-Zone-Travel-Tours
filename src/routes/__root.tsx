@@ -17,7 +17,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "@/components/ui/sonner";
 import { ContentProvider } from "@/lib/content";
 import { fetchSharedContent } from "@/data/queries";
-import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, organizationJsonLd } from "@/lib/seo";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -113,14 +113,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
-    scripts: loaderData
-      ? [
-          {
-            type: "application/ld+json",
-            children: JSON.stringify(organizationJsonLd(loaderData.site)),
-          },
-        ]
-      : [],
+    // websiteJsonLd does not depend on the loader, so it stays outside the
+    // branch and still identifies the site if the settings fetch fails.
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(websiteJsonLd()),
+      },
+      ...(loaderData
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(organizationJsonLd(loaderData.site)),
+            },
+          ]
+        : []),
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

@@ -23,25 +23,42 @@ import { TravelVideo } from "@/components/TravelVideo";
 import { BlogCard } from "@/components/BlogCard";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { Reveal } from "@/components/Reveal";
-import { fetchBlogs } from "@/data/queries";
+import { fetchBlogs, fetchFaqs } from "@/data/queries";
 import { generalVideos } from "@/data/videos";
 import { useDestinations, usePhoto, useTours, useVideos, useWhatsappLink } from "@/lib/content";
-import { seoHead } from "@/lib/seo";
+import { faqJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  loader: () => fetchBlogs(),
-  head: () =>
-    seoHead({
+  // faqs are loaded here as well as by the root, because the FAQPage markup has
+  // to be built in `head` and route heads only see their own loader data.
+  loader: async () => {
+    const [blogs, faqs] = await Promise.all([fetchBlogs(), fetchFaqs()]);
+    return { blogs, faqs };
+  },
+  head: ({ loaderData }) => ({
+    ...seoHead({
       title: "Trip Zone Travel & Tours | Nepal Tour Packages",
       description:
         "Handpicked Nepal journeys to Manang, Muktinath, Pathivara, Halesi, Sailung, Kalinchowk, Gosaikunda and more with clear prices and comfortable transport.",
       path: "/",
     }),
+    // Mirrors the <FaqAccordion /> rendered further down the page.
+    scripts: loaderData?.faqs?.length
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify(
+              faqJsonLd(loaderData.faqs.map((faq) => ({ question: faq.q, answer: faq.a }))),
+            ),
+          },
+        ]
+      : [],
+  }),
   component: Index,
 });
 
 function Index() {
-  const blogs = Route.useLoaderData();
+  const blogs = Route.useLoaderData().blogs;
   const featured = useTours();
   const destinations = useDestinations();
   const hero = usePhoto("manang");

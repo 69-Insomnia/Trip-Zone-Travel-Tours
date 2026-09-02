@@ -15,6 +15,7 @@ import {
   TicketCheck,
 } from "lucide-react";
 import { BookingCTA } from "@/components/BookingCTA";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -32,11 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { seoHead } from "@/lib/seo";
+import { breadcrumbJsonLd, seoHead, serviceListJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/services")({
-  head: () =>
-    seoHead({
+  head: () => ({
+    ...seoHead({
       title: "Car Hire & Nepal Travel Services | Trip Zone",
       description:
         "Book comfortable car hire from Kathmandu, private vehicles, EV vans, Jeeps and tourist buses with itinerary and accommodation support across Nepal.",
@@ -44,6 +45,21 @@ export const Route = createFileRoute("/services")({
       // ev-sedan.png is only 640x360, under the 1200x630 social-card floor.
       image: "/vehicles/byd-atto-3.png",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Services" }]),
+        ),
+      },
+      // Built from the same `services` array the page renders, so the markup
+      // cannot describe services the page does not list.
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(serviceListJsonLd(services)),
+      },
+    ],
+  }),
   component: ServicesPage,
 });
 
@@ -165,7 +181,9 @@ function ServicesPage() {
         image="/vehicles/ev-sedan.png"
         imageAlt="Electric sedan travelling on a tree-lined road"
         imagePosition="center 56%"
-      />
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Services" }]} />
+      </PageHero>
 
       <section className="section-y">
         <div className="container-page">
