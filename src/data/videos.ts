@@ -28,6 +28,19 @@ export function videoSource(path: string) {
   return `${GITHUB_LFS_MEDIA_BASE}/${encodedPath}`;
 }
 
+/**
+ * Git LFS serves hosted objects as application/octet-stream. Supplying the
+ * media type on the source lets browsers select and decode the actual format
+ * even when that transport header is generic.
+ */
+export function videoMimeType(path: string): string | undefined {
+  const pathname = path.split(/[?#]/, 1)[0]?.toLowerCase() ?? "";
+  if (/\.mp4$/.test(pathname) || /\.m4v$/.test(pathname)) return "video/mp4";
+  if (/\.mov$/.test(pathname)) return "video/quicktime";
+  if (/\.webm$/.test(pathname)) return "video/webm";
+  return undefined;
+}
+
 export type Video = {
   /** Stable key for lookups. */
   key: string;

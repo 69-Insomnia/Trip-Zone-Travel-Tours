@@ -63,8 +63,10 @@ function Index() {
   const destinations = useDestinations();
   const hero = usePhoto("manang");
   const editorial = usePhoto("manangRoad");
-  /** Company films — the per-tour footage lives on each tour page. */
-  const generalFilms = generalVideos(useVideos());
+  /** Prefer company films, but never leave the home page without available footage. */
+  const allFilms = useVideos();
+  const generalFilms = generalVideos(allFilms);
+  const homeFilms = generalFilms.length > 0 ? generalFilms : allFilms;
   const whatsapp = useWhatsappLink();
 
   return (
@@ -107,12 +109,12 @@ function Index() {
               </Button>
             </div>
           </div>
-          {generalFilms.length > 0 ? (
+          {homeFilms.length > 0 ? (
             <div className="pb-1 lg:pb-10">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground/65">
                 Trip Zone journey film
               </p>
-              <TravelVideo items={generalFilms} />
+              <TravelVideo items={homeFilms} />
             </div>
           ) : null}
         </div>

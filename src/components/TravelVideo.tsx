@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Maximize2, X } from "lucide-react";
-import { type Video } from "@/data/videos";
+import { type Video, videoMimeType } from "@/data/videos";
 import { useVideos } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -85,9 +85,9 @@ export function TravelVideo({ items, floating = true, tone = "dark" }: TravelVid
             poster={current.posterSrc}
             title={current.title}
           >
-            {/* No `type` attribute: a film uploaded from /admin may be MP4, MOV
-                or WebM, so let the browser decide from what the server sends. */}
-            <source src={current.src} />
+            {/* Uploaded films may be MP4, MOV or WebM; the explicit type also
+                keeps Git LFS-hosted files playable when their header is generic. */}
+            <source src={current.src} type={videoMimeType(current.src)} />
             Your browser does not support HTML video.
           </video>
           {docked ? (
