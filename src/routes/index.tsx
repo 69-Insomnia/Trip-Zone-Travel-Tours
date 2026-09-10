@@ -23,32 +23,50 @@ import { TravelVideo } from "@/components/TravelVideo";
 import { BlogCard } from "@/components/BlogCard";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { Reveal } from "@/components/Reveal";
-import { fetchBlogs } from "@/data/queries";
+import { fetchBlogs, fetchFaqs } from "@/data/queries";
 import { generalVideos } from "@/data/videos";
 import { useDestinations, usePhoto, useTours, useVideos, useWhatsappLink } from "@/lib/content";
-import { seoHead } from "@/lib/seo";
+import { faqJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  loader: () => fetchBlogs(),
-  head: () =>
-    seoHead({
+  // faqs are loaded here as well as by the root, because the FAQPage markup has
+  // to be built in `head` and route heads only see their own loader data.
+  loader: async () => {
+    const [blogs, faqs] = await Promise.all([fetchBlogs(), fetchFaqs()]);
+    return { blogs, faqs };
+  },
+  head: ({ loaderData }) => ({
+    ...seoHead({
       title: "Trip Zone Travel & Tours | Nepal Tour Packages",
       description:
         "Handpicked Nepal journeys to Manang, Muktinath, Pathivara, Halesi, Sailung, Kalinchowk, Gosaikunda and more with clear prices and comfortable transport.",
       path: "/",
-      image: "/photos/hero-annapurna.jpg",
     }),
+    // Mirrors the <FaqAccordion /> rendered further down the page.
+    scripts: loaderData?.faqs?.length
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify(
+              faqJsonLd(loaderData.faqs.map((faq) => ({ question: faq.q, answer: faq.a }))),
+            ),
+          },
+        ]
+      : [],
+  }),
   component: Index,
 });
 
 function Index() {
-  const blogs = Route.useLoaderData();
+  const blogs = Route.useLoaderData().blogs;
   const featured = useTours();
   const destinations = useDestinations();
   const hero = usePhoto("manang");
   const editorial = usePhoto("manangRoad");
-  /** Company films — the per-tour footage lives on each tour page. */
-  const generalFilms = generalVideos(useVideos());
+  /** Prefer company films, but never leave the home page without available footage. */
+  const allFilms = useVideos();
+  const generalFilms = generalVideos(allFilms);
+  const homeFilms = generalFilms.length > 0 ? generalFilms : allFilms;
   const whatsapp = useWhatsappLink();
 
   return (
@@ -91,12 +109,12 @@ function Index() {
               </Button>
             </div>
           </div>
-          {generalFilms.length > 0 ? (
+          {homeFilms.length > 0 ? (
             <div className="pb-1 lg:pb-10">
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground/65">
                 Trip Zone journey film
               </p>
-              <TravelVideo items={generalFilms} />
+              <TravelVideo items={homeFilms} />
             </div>
           ) : null}
         </div>
@@ -260,7 +278,7 @@ function Index() {
             <Reveal className="col-span-2">
               <figure className="group relative overflow-hidden rounded-xl bg-ink">
                 <img
-                  src="/vehicles/ev-suv.png"
+                  src="/vehicles/ev-suv.webp"
                   alt="Electric SUV available for private Nepal travel"
                   className="aspect-[16/8] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                   loading="lazy"
@@ -280,7 +298,7 @@ function Index() {
             <Reveal delay={100}>
               <figure className="group relative overflow-hidden rounded-xl bg-ink">
                 <img
-                  src="/vehicles/scorpio.png"
+                  src="/vehicles/scorpio.webp"
                   alt="Scorpio Jeep for group and hill routes"
                   className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                   loading="lazy"

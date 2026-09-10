@@ -427,9 +427,10 @@ function score(candidate, subject, used) {
  * at, and one that names a range hundreds of kilometres away is refused outright.
  */
 function locate(candidate, categories, geography) {
-  const words = `${candidate.title} ${candidate.description} ${(categories.get(candidate.pageTitle) ?? []).join(" ")}`
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ");
+  const words =
+    `${candidate.title} ${candidate.description} ${(categories.get(candidate.pageTitle) ?? []).join(" ")}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ");
   return { words, inRegion: geography.accept.test(words) && !geography.reject.test(words) };
 }
 
@@ -614,7 +615,10 @@ await writeFile(GENERATED, generated);
 const START = "<!-- begin generated viewpoint credits -->";
 const END = "<!-- end generated viewpoint credits -->";
 const lines = entries
-  .map(([, photo]) => `- \`${photo.image.replace("/photos/", "")}\`: ${photo.credit}: ${photo.creditUrl}`)
+  .map(
+    ([, photo]) =>
+      `- \`${photo.image.replace("/photos/", "")}\`: ${photo.credit}: ${photo.creditUrl}`,
+  )
   .join("\n");
 const section = `## Tour viewpoint photographs\n\nOne photograph per entry in the "Places & mountain views" grid, collected by\n\`npm run media:view-photos\`.\n\n${START}\n${lines}\n${END}\n`;
 

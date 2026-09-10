@@ -1,27 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BlogCard } from "@/components/BlogCard";
 import { BookingCTA } from "@/components/BookingCTA";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PageHero } from "@/components/PageHero";
 import { fetchBlogs } from "@/data/queries";
-import { seoHead } from "@/lib/seo";
+import { usePhoto } from "@/lib/content";
+import { blogCollectionJsonLd, breadcrumbJsonLd, seoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blogs/")({
   loader: () => fetchBlogs(),
-  head: () =>
-    seoHead({
+  head: ({ loaderData }) => ({
+    ...seoHead({
       title: "Nepal Travel Blog | Trip Zone Travel & Tours",
       description:
         "Practical Nepal destination guides, road-trip ideas, pilgrimage tips and local travel advice from Trip Zone.",
       path: "/blogs",
-      image:
-        "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=88",
+      // First-party, like every other route's card, and the same photo the
+      // hero below renders.
+      image: "/photos/pokhara.jpg",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Blogs" }]),
+        ),
+      },
+      // Ties every post on this page back to one Blog node, which is how the
+      // individual BlogPosting pages get attributed to a publication.
+      ...(loaderData?.length
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(blogCollectionJsonLd(loaderData)),
+            },
+          ]
+        : []),
+    ],
+  }),
   component: BlogsPage,
 });
 
 function BlogsPage() {
   const blogs = Route.useLoaderData();
+  const hero = usePhoto("pokhara");
 
   return (
     <>
@@ -29,10 +52,11 @@ function BlogsPage() {
         eyebrow="The Trip Zone journal"
         title="Ideas for your next Nepal journey."
         subtitle="Destination guides, route notes and practical tips to help you travel Nepal with more confidence."
-        image="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=2200&q=88"
-        imageAlt="Nepal valley and mountain road"
-        imagePosition="center 48%"
-      />
+        image={hero.src}
+        imageAlt={hero.alt}
+      >
+        <Breadcrumbs tone="light" items={[{ label: "Home", to: "/" }, { label: "Blogs" }]} />
+      </PageHero>
       <section className="section-y">
         <div className="container-page">
           <SectionHeading

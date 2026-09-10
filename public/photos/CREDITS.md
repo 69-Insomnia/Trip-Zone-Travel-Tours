@@ -6,8 +6,10 @@ The following destination photographs are used by Trip Zone Travel & Tours.
 - `ama-yangri.jpg`: "Ama Yangri, Helambu Mountain" by Adventurenepal, CC BY-SA 4.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Ama_Yangri,_Helambu_Mountain.png
 - `gosaikunda.jpg`: "Lake Gosaikunda" by Sergey Pesterev, CC BY-SA 4.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Lake_Gosaikunda.jpg
 - `dhorpatan.jpg`: "Dhorpatan Hunting Reserve at morning" by Ratish Jung Subedi, CC BY-SA 4.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Dhorpatan,Dhorpatan_Hunting_Reserve_at_morning.jpg
+- `manang-road.jpg`: "The Marsyangdi river at Dharapani - Annapurna Circuit, Nepal - panoramio" by Sergey Ashmarin, CC BY-SA 3.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:The_Marsyangdi_river_at_Dharapani_-_Annapurna_Circuit,_Nepal_-_panoramio.jpg
 
 Creative Commons Attribution-ShareAlike 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+Creative Commons Attribution-ShareAlike 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
 ## Tour viewpoint photographs
 

@@ -25,6 +25,7 @@ export type Field = {
   | { kind: "image" }
   | { kind: "video" }
   | { kind: "stringList"; placeholder?: string }
+  | { kind: "tourSlugs" }
   | { kind: "linkList" }
   | { kind: "sections" }
   | { kind: "prices" }

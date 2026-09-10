@@ -17,7 +17,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "@/components/ui/sonner";
 import { ContentProvider } from "@/lib/content";
 import { fetchSharedContent } from "@/data/queries";
-import { absoluteUrl, organizationJsonLd } from "@/lib/seo";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Trip Zone Travel & Tours Pvt. Ltd." },
       { property: "og:site_name", content: "Trip Zone Travel & Tours" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: absoluteUrl("/photos/hero-annapurna.jpg") },
+      { property: "og:image", content: absoluteUrl(DEFAULT_SOCIAL_IMAGE) },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#153b4a" },
     ],
@@ -104,19 +104,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/logo.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // Every hero is now a first-party photo, so nothing on the LCP path is
+      // cross-origin. The gallery grid still hotlinks Unsplash though, and
+      // warming DNS + TLS here is cheaper than paying for it on that route.
+      { rel: "preconnect", href: "https://images.unsplash.com" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
-    scripts: loaderData
-      ? [
-          {
-            type: "application/ld+json",
-            children: JSON.stringify(organizationJsonLd(loaderData.site)),
-          },
-        ]
-      : [],
+    // websiteJsonLd does not depend on the loader, so it stays outside the
+    // branch and still identifies the site if the settings fetch fails.
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(websiteJsonLd()),
+      },
+      ...(loaderData
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(organizationJsonLd(loaderData.site)),
+            },
+          ]
+        : []),
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

@@ -42,6 +42,7 @@ import {
   type View,
 } from "@/lib/admin-fields";
 import { errorMessage } from "@/lib/admin-client";
+import { useTours } from "@/lib/content";
 import { isValidExternalUrl, normalizeExternalUrl } from "@/lib/external-url";
 import {
   formatBytes,
@@ -185,6 +186,77 @@ function StringListInput({
         </div>
       ))}
       <AddButton label="Add item" onClick={() => set([...items, ""])} />
+    </div>
+  );
+}
+
+/**
+ * Picks the packages a film belongs to.
+ *
+ * `tour_slugs` is matched against a tour's slug exactly, so a typed value that
+ * is close but wrong — "muktinath-tour" for the tour actually at "muktinath" —
+ * leaves the film saved, published and invisible, with nothing to explain why.
+ * Offering the real slugs as checkboxes removes the failure altogether.
+ *
+ * Slugs already stored that match no current tour are still listed, so a
+ * renamed or unpublished tour shows up here as something to fix rather than
+ * disappearing silently the moment this form is opened.
+ */
+function TourSlugsInput({ value, onChange }: { value: unknown; onChange: ChangeHandler }) {
+  const tours = useTours();
+  const selected = asStringList(value);
+  const known = tours.map((tour) => ({ slug: tour.slug, name: tour.name }));
+  const orphans = selected
+    .filter((slug) => slug.trim() !== "" && !known.some((tour) => tour.slug === slug))
+    .map((slug) => ({ slug, name: slug }));
+  const rows = [...known, ...orphans];
+
+  const toggle = (slug: string) =>
+    onChange(
+      selected.includes(slug) ? selected.filter((s) => s !== slug) : [...selected, slug].sort(),
+    );
+
+  if (rows.length === 0) {
+    return (
+      <p className="rounded-lg border border-border bg-secondary/20 p-3 text-xs text-muted-foreground">
+        No tours are loaded yet. Save the film without a tour and it plays on the home page.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="grid gap-1.5 rounded-lg border border-border bg-secondary/20 p-2 sm:grid-cols-2">
+        {rows.map((tour) => {
+          const isOrphan = !known.some((k) => k.slug === tour.slug);
+          return (
+            <label
+              key={tour.slug}
+              className="flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 hover:bg-card"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4 shrink-0 accent-primary"
+                checked={selected.includes(tour.slug)}
+                onChange={() => toggle(tour.slug)}
+              />
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-ink">{tour.name}</span>
+                <span
+                  className={`block truncate text-[0.6875rem] ${isOrphan ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+                >
+                  {isOrphan ? "No tour uses this address — untick it" : `/tours/${tour.slug}`}
+                </span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      <p className="text-[0.6875rem] text-muted-foreground">
+        {selected.length === 0
+          ? "Nothing selected — this film plays on the home page."
+          : `Plays on ${selected.length} tour ${selected.length === 1 ? "page" : "pages"}.`}
+      </p>
     </div>
   );
 }
@@ -977,6 +1049,8 @@ export function FieldInput({
           onChange={onChange}
         />
       );
+    case "tourSlugs":
+      return <TourSlugsInput value={value} onChange={onChange} />;
     case "linkList":
       return <LinkListInput value={value} onChange={onChange} />;
     case "sections":
@@ -1016,6 +1090,7 @@ export function FieldRow({
     field.wide ||
     field.kind === "textarea" ||
     field.kind === "stringList" ||
+    field.kind === "tourSlugs" ||
     field.kind === "linkList" ||
     field.kind === "sections" ||
     field.kind === "prices" ||

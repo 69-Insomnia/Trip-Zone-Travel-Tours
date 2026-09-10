@@ -5,6 +5,10 @@
  * its id is listed in the `admins` table, so this also confirms membership and
  * reports "signed in but not an administrator" as its own state.
  *
+ * A build with no Supabase configuration gets its own state too. Nobody can
+ * sign in then, and it is a deployment mistake rather than anything the visitor
+ * can act on, so it must not be mistaken for a slow session lookup.
+ *
  * Everything here runs in the browser. The admin routes render nothing until
  * `status` leaves "loading", which also keeps them out of server rendering.
  */
@@ -18,14 +22,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { adminClient, errorMessage } from "./admin-client";
 
-export type AdminStatus = "loading" | "signedOut" | "notAdmin" | "ready";
+export type AdminStatus = "loading" | "misconfigured" | "signedOut" | "notAdmin" | "ready";
 
 type AdminAuth = {
   status: AdminStatus;
   email: string | null;
+  /** Why the admin area cannot start. Only set while `status` is "misconfigured". */
+  configError: string | null;
   /** Resolves to null on success, or the reason it failed. */
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -36,9 +42,24 @@ const AdminAuthContext = createContext<AdminAuth | null>(null);
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AdminStatus>("loading");
   const [email, setEmail] = useState<string | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+
+    // Building the client throws when the deployment has no Supabase URL or
+    // key. That throw is synchronous, so it would escape the effect rather than
+    // reach the `.catch` below and leave the guard spinning on "loading".
+    let client: SupabaseClient;
+    try {
+      client = adminClient();
+    } catch (error) {
+      const reason = errorMessage(error);
+      console.error("[admin] the admin area is not configured:", reason);
+      setConfigError(reason);
+      setStatus("misconfigured");
+      return;
+    }
 
     /** Confirms the signed-in account is listed in `admins`. */
     async function resolve(session: Session | null) {
@@ -50,7 +71,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       setEmail(session.user.email ?? null);
-      const { data, error } = await adminClient()
+      const { data, error } = await client
         .from("admins")
         .select("user_id")
         .eq("user_id", session.user.id)
@@ -64,15 +85,15 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setStatus(data ? "ready" : "notAdmin");
     }
 
-    void adminClient()
-      .auth.getSession()
+    void client.auth
+      .getSession()
       .then(({ data }) => resolve(data.session))
       .catch((error: unknown) => {
         console.error("[admin] session lookup failed:", errorMessage(error));
         if (!cancelled) setStatus("signedOut");
       });
 
-    const { data: subscription } = adminClient().auth.onAuthStateChange((_event, session) => {
+    const { data: subscription } = client.auth.onAuthStateChange((_event, session) => {
       void resolve(session);
     });
 
@@ -83,23 +104,31 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (address: string, password: string) => {
-    const { error } = await adminClient().auth.signInWithPassword({
-      email: address.trim().toLowerCase(),
-      password,
-    });
-    // On success onAuthStateChange takes over and re-checks membership.
-    return error ? error.message : null;
+    try {
+      const { error } = await adminClient().auth.signInWithPassword({
+        email: address.trim().toLowerCase(),
+        password,
+      });
+      // On success onAuthStateChange takes over and re-checks membership.
+      return error ? error.message : null;
+    } catch (error) {
+      return errorMessage(error);
+    }
   }, []);
 
   const signOut = useCallback(async () => {
-    await adminClient().auth.signOut();
+    try {
+      await adminClient().auth.signOut();
+    } catch (error) {
+      console.error("[admin] sign out failed:", errorMessage(error));
+    }
     setStatus("signedOut");
     setEmail(null);
   }, []);
 
   const value = useMemo<AdminAuth>(
-    () => ({ status, email, signIn, signOut }),
-    [status, email, signIn, signOut],
+    () => ({ status, email, configError, signIn, signOut }),
+    [status, email, configError, signIn, signOut],
   );
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;

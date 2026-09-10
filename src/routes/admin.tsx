@@ -4,6 +4,7 @@
 
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   CircleHelp,
   ExternalLink,
   Film,
@@ -19,6 +20,7 @@ import {
   Newspaper,
   Settings,
   ShieldCheck,
+  TriangleAlert,
 } from "lucide-react";
 import { type ReactNode } from "react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
@@ -104,7 +106,7 @@ function Centered({ children }: { children: ReactNode }) {
 }
 
 function Guard({ children }: { children: ReactNode }) {
-  const { status, email, signOut } = useAdminAuth();
+  const { status, email, configError, signOut } = useAdminAuth();
 
   if (status === "loading") {
     return (
@@ -112,6 +114,35 @@ function Guard({ children }: { children: ReactNode }) {
         <Loader2 className="mx-auto size-5 animate-spin text-primary" />
         <p className="mt-3 text-sm font-medium text-ink">Checking admin access</p>
         <p className="mt-1 text-xs text-muted-foreground">This will only take a moment.</p>
+      </Centered>
+    );
+  }
+
+  if (status === "misconfigured") {
+    return (
+      <Centered>
+        <div className="mx-auto grid size-11 place-items-center rounded-full bg-destructive/10">
+          <TriangleAlert className="size-5 text-destructive" aria-hidden="true" />
+        </div>
+        <h1 className="mt-4 font-display text-xl text-ink">Admin area not configured</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          This build has no database connection, so nobody can sign in. Set{" "}
+          <code className="rounded bg-secondary px-1 py-0.5 text-xs">VITE_SUPABASE_URL</code> and{" "}
+          <code className="rounded bg-secondary px-1 py-0.5 text-xs">
+            VITE_SUPABASE_PUBLISHABLE_KEY
+          </code>{" "}
+          in the hosting environment, then deploy again. They are read while the site is built, so a
+          fresh build is needed for a change to take effect.
+        </p>
+        {configError ? (
+          <p className="mt-3 text-xs text-muted-foreground/80">{configError}</p>
+        ) : null}
+        <Button variant="outline" className="mt-5" asChild>
+          <Link to="/">
+            <ArrowLeft aria-hidden="true" />
+            Back to website
+          </Link>
+        </Button>
       </Centered>
     );
   }
