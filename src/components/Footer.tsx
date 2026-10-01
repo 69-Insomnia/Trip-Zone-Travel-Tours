@@ -157,25 +157,23 @@ export function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col gap-2 border-t border-primary-foreground/12 pt-6 text-xs text-primary-foreground/55 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
-            <div>
-              <p>
-                © {new Date().getFullYear()} {site.name}. All rights reserved.
-              </p>
-              <p>{site.address}</p>
-            </div>
+          <div>
             <p>
-              Made with ❤️ by{" "}
-              <a
-                href="https://dipendraguragain.tech"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-foreground/75 transition-colors hover:text-accent"
-              >
-                Dipendra Guragain
-              </a>
+              © {new Date().getFullYear()} {site.name}. All rights reserved.
             </p>
+            <p>{site.address}</p>
           </div>
+          <p>
+            Made with ❤️ by{" "}
+            <a
+              href="https://dipendraguragain.tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-foreground/75 transition-colors hover:text-accent"
+            >
+              Dipendra Guragain
+            </a>
+          </p>
         </div>
       </div>
     </footer>
