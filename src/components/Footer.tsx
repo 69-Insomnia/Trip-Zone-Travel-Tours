@@ -143,7 +143,7 @@ export function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                       title={`Open ${social.label}`}
-                      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-primary-foreground/15 px-3 py-2 text-xs font-semibold text-primary-foreground/75 transition-colors hover:border-accent/50 hover:text-accent"
+                      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-primary-foreground/15 px-3 py-2 text-xs font-semibold text-primary-foreground/75 transition-colors hover:text-accent"
                     >
                       <SocialIcon className="size-4" aria-hidden="true" />
                       {social.label}
@@ -157,10 +157,25 @@ export function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col gap-2 border-t border-primary-foreground/12 pt-6 text-xs text-primary-foreground/55 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} {site.name}. All rights reserved.
-          </p>
-          <p>{site.address}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
+            <div>
+              <p>
+                © {new Date().getFullYear()} {site.name}. All rights reserved.
+              </p>
+              <p>{site.address}</p>
+            </div>
+            <p>
+              Made with ❤️ by{" "}
+              <a
+                href="https://dipendraguragain.tech"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-foreground/75 transition-colors hover:text-accent"
+              >
+                Dipendra Guragain
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
